@@ -9,7 +9,7 @@
         <span class="toggle-password" @click="togglePasswordVisibility">{{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
       </div>
       <button @click="login">Sign In</button>
-      <p @click="goToSignup">I am a new user! Sign up</p>
+      <p @click="switchToSignup">I am a new user! Sign up</p>
     </div>
   </div>
 </template>
@@ -28,8 +28,8 @@ export default {
     login() {
       console.log('Logging in with', this.usernameOrEmail, this.password);
     },
-    goToSignup() {
-      this.$router.push({ name: 'signup' });
+    switchToSignup() {
+      this.$emit('switchToSignup');
     },
     openConsole(event) {
       console.log('Right click detected on LoginPage');
@@ -48,7 +48,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #e5e2db;
+  background-color: transparent;
 }
 .auth-box {
   display: flex;

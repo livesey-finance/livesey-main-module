@@ -19,6 +19,7 @@ const routes = [
     name: 'portfolio',
     component: PortfolioPage,
   },
+  
 ];
 
 const router = createRouter({

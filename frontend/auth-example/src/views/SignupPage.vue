@@ -16,7 +16,7 @@
         <span class="toggle-password" @click="toggleRepeatPasswordVisibility">{{ repeatPasswordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
       </div>
       <button @click="signup">Sign Up</button>
-      <p @click="goToLogin">I already have an account! Sign in</p>
+      <p @click="switchToLogin">I already have an account! Sign in</p>
     </div>
   </div>
 </template>
@@ -40,8 +40,8 @@ export default {
     signup() {
       console.log('Signing up with', this.firstName, this.lastName, this.username, this.email, this.password);
     },
-    goToLogin() {
-      this.$router.push({ name: 'login' });
+    switchToLogin() {
+      this.$emit('switchToLogin');
     },
     openConsole(event) {
       console.log('Right click detected on SignupPage');
@@ -63,7 +63,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #e5e2db;
+  background-color: transparent;
 }
 .auth-box {
   display: flex;
