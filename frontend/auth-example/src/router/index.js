@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 import PortfolioPage from '@/views/PortfolioPage.vue';
+import SharesPage from '@/views/SharesPage.vue';
 
 const routes = [
   {
@@ -19,11 +20,15 @@ const routes = [
     name: 'portfolio',
     component: PortfolioPage,
   },
-  
+  {
+    path: '/shares',
+    name: 'shares',
+    component: SharesPage,
+  },
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(process.env.BASE_URL),
   routes,
 });
 

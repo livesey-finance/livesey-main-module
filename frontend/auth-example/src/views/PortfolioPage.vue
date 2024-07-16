@@ -4,9 +4,9 @@
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
       <nav>
         <a href="/">Home</a>
-        <a href="#">Shares</a>
+        <a href="/shares">Shares</a>
         <a href="#">Crypto</a>
-        <a href="#">Portfolio</a>
+        <a href="/portfolio" class="active">Portfolio</a>
         <a href="#">Calculator</a>
         <a href="#">About</a>
         <a @click="openLogin">Sign In</a>
@@ -202,11 +202,15 @@ export default {
 </script>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+}
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
+  width: 100%;
+  overflow-x: hidden; /* Hide horizontal overflow */
 }
 .portfolio-container {
   display: flex;
@@ -216,6 +220,7 @@ html, body {
   color: #000;
   height: 100%;
   overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 header {
   display: flex;
@@ -224,10 +229,12 @@ header {
   width: 100%;
   padding: 20px;
   background-color: #f6f4f0;
+  position: relative; /* Ensure header is positioned relative */
 }
 .logo {
   margin-left: 30px;
   height: 60px;
+  max-width: 100%; /* Ensure logo does not overflow */
 }
 nav {
   display: flex;
@@ -236,9 +243,13 @@ nav {
   font-size: 22px;
 }
 nav a {
-  color: #4f4f4f;
   text-decoration: none;
-  cursor: pointer;
+  color: #4f4f4f;
+  white-space: nowrap; /* Prevent text wrapping */
+}
+nav a.active {
+  font-weight: bold;
+  color: #000;
 }
 .content {
   display: flex;
