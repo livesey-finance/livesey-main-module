@@ -5,7 +5,7 @@
       <nav>
         <a href="/">Home</a>
         <a href="/shares">Shares</a>
-        <a href="#">Crypto</a>
+        <a href="/crypto">Crypto</a>
         <a href="/portfolio" class="active">Portfolio</a>
         <a href="#">Calculator</a>
         <a href="#">About</a>

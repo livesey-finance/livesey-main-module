@@ -5,7 +5,7 @@
       <nav>
         <a href="/">Home</a>
         <a href="#" class="active">Shares</a>
-        <a href="#">Crypto</a>
+        <a href="/crypto">Crypto</a>
         <a href="/portfolio">Portfolio</a>
         <a href="#">Calculator</a>
         <a href="#">About</a>
@@ -17,8 +17,8 @@
       <div class="company-info">
         <img :src="companyLogoSrc" alt="Company Logo" class="company-logo" />
         <div class="company-details">
-          <h1>Apple Computer, Inc.</h1>
-          <h2>AAPL</h2>
+          <h1>{{ companyName }}</h1>
+          <h2>{{ companyCode }}</h2>
         </div>
         <button @click="togglePortfolio" :class="['portfolio-btn', { 'remove-btn': isInPortfolio }]">
           {{ isInPortfolio ? '- Remove from portfolio' : '+ Add to portfolio' }}
@@ -30,11 +30,12 @@
           <button @click="activeTab = 'efficiency'" :class="{ active: activeTab === 'efficiency' }">Efficiency ratios</button>
           <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity ratios</button>
           <button @click="activeTab = 'valuation'" :class="{ active: activeTab === 'valuation' }">Valuation ratios</button>
+          <button @click="activeTab = 'gearing'" :class="{ active: activeTab === 'gearing' }">Gearing ratios</button>
           <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other ratios</button>
         </div>
         <div class="ratios-content">
           <div v-if="activeTab === 'debt'" class="ratios">
-            <table>
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
@@ -54,7 +55,7 @@
             </table>
           </div>
           <div v-if="activeTab === 'efficiency'" class="ratios">
-            <table>
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
@@ -74,7 +75,7 @@
             </table>
           </div>
           <div v-if="activeTab === 'liquidity'" class="ratios">
-            <table>
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
@@ -94,7 +95,7 @@
             </table>
           </div>
           <div v-if="activeTab === 'valuation'" class="ratios">
-            <table>
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
@@ -113,8 +114,28 @@
               </tbody>
             </table>
           </div>
+          <div v-if="activeTab === 'gearing'" class="ratios">
+            <table class="ratios-table">
+              <thead>
+                <tr>
+                  <th>Ratio</th>
+                  <th>Value</th>
+                  <th>Value estimation</th>
+                  <th>Normal value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="ratio in gearingRatios" :key="ratio.name">
+                  <td>{{ ratio.name }}</td>
+                  <td>{{ ratio.value }}</td>
+                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
+                  <td>{{ ratio.normalValue }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
           <div v-if="activeTab === 'other'" class="ratios">
-            <table>
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
@@ -168,7 +189,6 @@
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
@@ -186,12 +206,15 @@ export default {
       activeTab: 'valuation',
       logoSrc: null,
       companyLogoSrc: null,
+      companyName: 'Unknown',
+      companyCode: 'unknown',
       showLogin: false,
       showSignup: false,
       valuationRatios: [],
       debtRatios: [],
       efficiencyRatios: [],
       liquidityRatios: [],
+      gearingRatios: [],
       otherRatios: [],
       placeholders: ['ABC', 'ABC', 'ABC', 'ABC', 'ABC']
     };
@@ -222,6 +245,21 @@ export default {
         return require(`@/assets/${src}`);
       } catch (e) {
         return require('@/assets/default.png');
+      }
+    },
+    async fetchCompanyDetails() {
+      const companyCode = this.$route.params.code || 'unknown';
+      try {
+        const response = await axios.get(`/api/company-details/${companyCode}`);
+        const data = response.data || {};
+        this.companyName = data.name || 'Unknown';
+        this.companyCode = data.code || 'unknown';
+        this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
+      } catch (error) {
+        console.error('Error fetching company details:', error);
+        this.companyName = 'Unknown';
+        this.companyCode = 'unknown';
+        this.companyLogoSrc = this.importLogo('default.png');
       }
     },
     async fetchValuationRatios() {
@@ -295,6 +333,23 @@ export default {
         ];
       }
     },
+    async fetchGearingRatios() {
+      try {
+        const response = await axios.get('/api/gearing-ratios');
+        this.gearingRatios = response.data.map(ratio => ({
+          name: ratio.name || 'Unknown',
+          value: ratio.value || '00.00',
+          estimation: ratio.estimation || 'not estimated',
+          normalValue: ratio.normalValue || '00.00'
+        }));
+      } catch (error) {
+        console.error('Error fetching gearing ratios:', error);
+        this.gearingRatios = [
+          { name: 'Debt Ratio', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
+          { name: 'Equity Ratio', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        ];
+      }
+    },
     async fetchOtherRatios() {
       try {
         const response = await axios.get('/api/other-ratios');
@@ -327,15 +382,18 @@ export default {
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
-    this.companyLogoSrc = this.importLogo('apple-logo.png');
+    this.fetchCompanyDetails();
     this.fetchValuationRatios();
     this.fetchDebtRatios();
     this.fetchEfficiencyRatios();
     this.fetchLiquidityRatios();
+    this.fetchGearingRatios();
     this.fetchOtherRatios();
   }
 };
 </script>
+
+
 <style scoped>
 * {
   box-sizing: border-box;
@@ -472,11 +530,11 @@ nav a.active {
   width: 100%;
 }
 
-table {
+.ratios-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  overflow-x: auto; /* Enable horizontal scrolling */
+  table-layout: fixed; /* Fixed table layout to maintain column widths */
 }
 
 th, td {

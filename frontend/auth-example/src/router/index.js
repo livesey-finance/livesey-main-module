@@ -3,6 +3,7 @@ import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 import PortfolioPage from '@/views/PortfolioPage.vue';
 import SharesPage from '@/views/SharesPage.vue';
+import CryptoPage from '@/views/CryptoPage.vue';
 
 const routes = [
   {
@@ -21,9 +22,14 @@ const routes = [
     component: PortfolioPage,
   },
   {
-    path: '/shares',
+    path: '/shares/:code?',
     name: 'shares',
     component: SharesPage,
+  },
+  {
+    path: '/crypto/:code',
+    name: 'crypto',
+    component: CryptoPage,
   },
 ];
 
