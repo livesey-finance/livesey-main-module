@@ -64,6 +64,7 @@ export default {
   align-items: center;
   height: 100vh;
   background-color: transparent;
+  padding: 20px;
 }
 .auth-box {
   display: flex;
@@ -73,6 +74,8 @@ export default {
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
 }
 .logo {
   margin-bottom: 0px;
@@ -94,8 +97,8 @@ export default {
 }
 .toggle-password {
   position: absolute;
-  right: 50px;
-  top: 35%;
+  right: 15px;
+  top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 16px;
@@ -104,7 +107,7 @@ export default {
 button {
   width: 300px;
   padding: 15px;
-  background-color: #8c8c8c;
+  background-color: #333;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -118,5 +121,13 @@ p {
 }
 h2 {
   color: #4f4f4f;
+}
+@media (max-width: 480px) {
+  .auth-input, .password-container, button {
+    width: 100%;
+  }
+  .toggle-password {
+    right: 10px;
+  }
 }
 </style>

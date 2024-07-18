@@ -3,15 +3,15 @@
     <header>
       <img :src="logoSrc" alt="Logo" class="logo" />
       <nav>
-        <a href="/">Home</a>
-        <a href="#" class="active">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="#">Calculator</a>
-        <a href="#">About</a>
-        <a @click="openLogin">Sign In</a>
-        <a @click="openSignup">Sign Up</a>
-      </nav>
+  <a href="/">Home</a>
+  <a href="/shares" class="active">Shares</a>
+  <a href="/crypto">Crypto</a>
+  <a href="/portfolio">Portfolio</a>
+  <a href="/calculator">Calculator</a>
+  <a href="/about">About</a>
+  <a @click="openLogin">Sign In</a>
+  <a @click="openSignup">Sign Up</a>
+</nav>
     </header>
     <div class="content">
       <div class="company-info">
@@ -429,7 +429,7 @@ header {
 .logo {
   margin-left: 30px;
   height: 60px;
-  max-width: 100%; /* Ensure logo does not overflow */
+  max-width: 100%;
 }
 
 nav {
@@ -440,14 +440,21 @@ nav {
 }
 
 nav a {
+  color: #000;
   text-decoration: none;
-  color: #4f4f4f;
-  white-space: nowrap; /* Prevent text wrapping */
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+nav a:hover {
+  background-color: #fff;
+  transition: 0.2s;
 }
 
 nav a.active {
-  font-weight: bold;
-  color: #000;
+  background-color: #333;
+  color: #fff;
+  transition: 0.2s;
 }
 
 .content {
@@ -568,47 +575,40 @@ th {
 }
 
 footer {
-  width: 100%;
-  background-color: #f6f4f0;
+  background-color: #333;
+  color: #fff;
   padding: 20px;
-  box-sizing: border-box;
-  margin-top: auto;
 }
 
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* Allow items to wrap */
+  width: 100%;
 }
 
 .footer-left {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
 .footer-logo {
-  color: #4f4f4f;
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
   text-decoration: none;
-  font-size: 20px;
 }
 
-.footer-social {
-  display: flex;
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.footer-right {
-  display: flex;
-  gap: 20px;
-  font-size: 16px;
+.footer-social a {
+  color: #fff;
+  text-decoration: none;
+  margin-right: 15px;
 }
 
 .footer-right a {
-  color: #4f4f4f;
+  color: #fff;
   text-decoration: none;
+  margin-right: 15px;
 }
 
 .modal {

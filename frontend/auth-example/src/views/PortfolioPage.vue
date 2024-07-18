@@ -5,7 +5,7 @@
       <nav>
         <a href="/">Home</a>
         <a href="/shares">Shares</a>
-        <a href="/crypto">Crypto</a>
+        <a href="#">Crypto</a>
         <a href="/portfolio" class="active">Portfolio</a>
         <a href="#">Calculator</a>
         <a href="#">About</a>
@@ -226,30 +226,41 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
   padding: 20px;
   background-color: #f6f4f0;
-  position: relative; /* Ensure header is positioned relative */
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .logo {
   margin-left: 30px;
   height: 60px;
-  max-width: 100%; /* Ensure logo does not overflow */
+  max-width: 100%;
 }
+
 nav {
   display: flex;
   gap: 30px;
   margin-right: 100px;
   font-size: 22px;
 }
+
 nav a {
-  text-decoration: none;
-  color: #4f4f4f;
-  white-space: nowrap; /* Prevent text wrapping */
-}
-nav a.active {
-  font-weight: bold;
   color: #000;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+nav a:hover {
+  background-color: #fff;
+  transition: 0.2s;
+}
+
+nav a.active {
+  background-color: #333;
+  color: #fff;
+  transition: 0.2s;
 }
 .content {
   display: flex;
