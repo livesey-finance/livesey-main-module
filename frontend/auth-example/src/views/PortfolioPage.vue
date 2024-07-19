@@ -231,32 +231,27 @@ header {
   width: 100%;
   box-sizing: border-box;
 }
-
 .logo {
   margin-left: 30px;
   height: 60px;
   max-width: 100%;
 }
-
 nav {
   display: flex;
   gap: 30px;
   margin-right: 100px;
   font-size: 22px;
 }
-
 nav a {
   color: #000;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
-
 nav a:hover {
   background-color: #fff;
   transition: 0.2s;
 }
-
 nav a.active {
   background-color: #333;
   color: #fff;
@@ -322,7 +317,6 @@ nav a.active {
 }
 .yield-total-value{
   font-size: 32px;
-
 }
 .currency {
   cursor: pointer;
@@ -348,16 +342,17 @@ nav a.active {
 }
 footer {
   width: 100%;
-  background-color: #f6f4f0;
+  background-color: #333;
+  color: #fff;
   padding: 20px;
   box-sizing: border-box;
   margin-top: auto;
 }
-
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 .footer-left {
   display: flex;
@@ -365,7 +360,7 @@ footer {
   align-items: flex-start;
 }
 .footer-logo {
-  color: #4f4f4f;
+  color: #fff;
   text-decoration: none;
   font-size: 20px;
 }
@@ -374,14 +369,25 @@ footer {
   gap: 20px;
   margin-top: 10px;
 }
+.footer-social a {
+  color: #fff; /* Ensure the social links are white */
+  text-decoration: none;
+}
+.footer-social a:hover {
+  text-decoration: underline;
+}
 .footer-right {
   display: flex;
   gap: 20px;
   font-size: 16px;
+  margin-top: 20px;
 }
 .footer-right a {
-  color: #4f4f4f;
+  color: #fff;
   text-decoration: none;
+}
+.footer-right a:hover {
+  text-decoration: underline;
 }
 .modal {
   position: fixed;
@@ -394,5 +400,80 @@ footer {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 1200px) {
+  .chart-container {
+    position: relative;
+    min-width: 100%;
+    height: 400px;
+    left: auto;
+    top: auto;
+    margin-bottom: 20px;
+  }
+  .info-container {
+    margin-left: 0;
+    margin-top: 20px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+  nav {
+    flex-direction: column;
+    gap: 10px;
+    margin-right: 0;
+    font-size: 18px;
+  }
+  nav a {
+    padding: 5px 10px;
+  }
+  .content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .yields-title, .yields, .yield-total {
+    margin-left: 0;
+    font-size: 24px;
+  }
+  .yield {
+    flex-direction: column;
+    text-align: center;
+  }
+  .yield-key, .yield-value {
+    font-size: 18px;
+  }
+  .yield-total {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    height: 40px;
+  }
+  nav {
+    font-size: 16px;
+  }
+  .info-container {
+    font-size: 20px;
+  }
+  .yields-title, .yield-key, .yield-value, .yield-total {
+    font-size: 18px;
+  }
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start (left) */
+  }
+  .footer-right {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start; /* Align items to the start (left) */
+  }
 }
 </style>

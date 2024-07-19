@@ -490,10 +490,12 @@ nav a.active {
   background-color: #4caf50;
   color: #fff;
   border: none;
-  padding: 5px 10px; /* Reduced padding for smaller button */
+  padding: 15px 5px; /* Reduced padding for smaller button */
   cursor: pointer;
   margin-left: 80px;
 }
+
+
 
 .portfolio-btn:hover {
   background-color: #45a049;
@@ -507,22 +509,36 @@ nav a.active {
   background-color: #e53935;
 }
 
+
+
+
 .tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
   flex-wrap: wrap; /* Allow items to wrap */
+  color: #000;
+  text-decoration: none;
+  font-size: 22px;
 }
 
 .tabs button {
+  color: #fff;
+  text-decoration: none;
   padding: 10px 20px;
-  cursor: pointer;
-  border: none;
-  background-color: #ddd;
+  border-radius: 5px;
+}
+
+.tabs button:hover {
+  background-color: #f6f4f0;
+  color: #333;
+  transition: 0.2s;
 }
 
 .tabs button.active {
-  background-color: #868B8E;
+  background-color: #333;
+  color: #fff;
+  transition: 0.2s;
 }
 
 .ratios-content {

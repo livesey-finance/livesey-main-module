@@ -1,11 +1,12 @@
 <template>
   <div class="auth-container" @contextmenu="openConsole">
     <div class="auth-box">
+      <span class="close-button" @click="closeModal">&times;</span>
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
       <h2 class="signup-title">Sign In</h2>
-      <input type="text" placeholder="username or email" v-model="usernameOrEmail" class="auth-input" />
+      <input type="text" placeholder="Username or Email" v-model="usernameOrEmail" class="auth-input" />
       <div class="password-container">
-        <input :type="passwordFieldType" placeholder="password" v-model="password" class="auth-input" />
+        <input :type="passwordFieldType" placeholder="Password" v-model="password" class="auth-input" />
         <span class="toggle-password" @click="togglePasswordVisibility">{{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
       </div>
       <button @click="login">Sign In</button>
@@ -31,6 +32,9 @@ export default {
     switchToSignup() {
       this.$emit('switchToSignup');
     },
+    closeModal() {
+      this.$emit('close');
+    },
     openConsole(event) {
       console.log('Right click detected on LoginPage');
       console.log('Mouse event:', event);
@@ -52,6 +56,7 @@ export default {
   padding: 20px;
 }
 .auth-box {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -61,6 +66,13 @@ export default {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+}
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
 }
 .logo {
   margin-bottom: 0px;
@@ -82,8 +94,8 @@ export default {
 }
 .toggle-password {
   position: absolute;
-  right: 15px;
-  top: 50%;
+  right: 45px;
+  top: 35%;
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 16px;
@@ -112,7 +124,7 @@ h2 {
     width: 100%;
   }
   .toggle-password {
-    right: 10px;
+    right: 45px;
   }
 }
 </style>

@@ -1,6 +1,7 @@
 <template>
   <div class="auth-container" @contextmenu="openConsole">
     <div class="auth-box">
+      <span class="close-button" @click="closeModal">&times;</span>
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
       <h2 class="signup-title">Sign Up</h2>
       <input type="text" placeholder="First name" v-model="firstName" class="auth-input" />
@@ -43,6 +44,9 @@ export default {
     switchToLogin() {
       this.$emit('switchToLogin');
     },
+    closeModal() {
+      this.$emit('close');
+    },
     openConsole(event) {
       console.log('Right click detected on SignupPage');
       console.log('Mouse event:', event);
@@ -67,6 +71,7 @@ export default {
   padding: 20px;
 }
 .auth-box {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -76,6 +81,13 @@ export default {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+}
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
 }
 .logo {
   margin-bottom: 0px;
@@ -97,8 +109,8 @@ export default {
 }
 .toggle-password {
   position: absolute;
-  right: 15px;
-  top: 50%;
+  right: 45px;
+  top: 35%;
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 16px;
@@ -127,7 +139,7 @@ h2 {
     width: 100%;
   }
   .toggle-password {
-    right: 10px;
+    right: 45px;
   }
 }
 </style>

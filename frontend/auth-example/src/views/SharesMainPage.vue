@@ -1,5 +1,5 @@
 <template>
-  <div class="shares-page">
+  <div class="shares-page" @contextmenu="openConsole">
     <header>
       <img :src="logoSrc" alt="Logo" class="logo" />
       <nav>
@@ -14,16 +14,25 @@
       </nav>
     </header>
     <div class="content">
-      <h1>Stock Quotes</h1>
-      <div class="switch-container">
-        <button @click="activeSection = 'price'" :class="{ active: activeSection === 'price' }">Price</button>
-        <button @click="activeSection = 'fundamental'" :class="{ active: activeSection === 'fundamental' }">Fundamental</button>
-      </div>
-      <div v-if="activeSection === 'price'" class="shares-table-container">
-        <SharesTable :data="priceData" :additionalFields="['Last', 'High', 'Low', 'Change', 'Change%', 'Volume', 'Time']" />
-      </div>
-      <div v-else class="shares-table-container">
-        <SharesTable :data="fundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" />
+      <div class="main-content">
+        <div class="header-with-buttons">
+          <h1>Stock Quotes</h1>
+          <div class="switch-container">
+            <button @click="changeSection('price')" :class="{ active: activeSection === 'price' }">Price</button>
+            <button @click="changeSection('fundamental')" :class="{ active: activeSection === 'fundamental' }">Fundamental</button>
+          </div>
+        </div>
+        <div v-if="activeSection === 'price'" class="shares-table-container">
+          <SharesTable :data="paginatedPriceData" :additionalFields="['Last', 'High', 'Low', 'Change', 'Change%', 'Volume', 'Time']" />
+        </div>
+        <div v-else class="shares-table-container">
+          <SharesTable :data="paginatedFundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" />
+        </div>
+        <div class="pagination">
+          <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
+          <span>Page {{ currentPage }} of {{ totalPages }}</span>
+          <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+        </div>
       </div>
       <div class="side-panel">
         <div class="side-category">
@@ -32,18 +41,10 @@
           <button @click="activeCategory = 'losers'" :class="{ active: activeCategory === 'losers' }">Losers %</button>
         </div>
         <div v-if="activeCategory === 'gainers'" class="side-content">
-          <ul>
-            <li v-for="gainer in gainers" :key="gainer.code">
-              {{ gainer.code }} - {{ gainer.changePercent }}
-            </li>
-          </ul>
+          <SharesTable :data="gainers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" />
         </div>
         <div v-else class="side-content">
-          <ul>
-            <li v-for="loser in losers" :key="loser.code">
-              {{ loser.code }} - {{ loser.changePercent }}
-            </li>
-          </ul>
+          <SharesTable :data="losers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" />
         </div>
       </div>
     </div>
@@ -67,70 +68,31 @@
         </div>
       </div>
     </footer>
+
+    <!-- Login Modal -->
+    <div v-if="showLogin" class="modal" @click.self="closeModal">
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" />
+    </div>
+
+    <!-- Signup Modal -->
+    <div v-if="showSignup" class="modal" @click.self="closeModal">
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+    </div>
   </div>
 </template>
 
+
 <script>
-import axios from 'axios';
+import SharesTable from './SharesTable.vue';
+import LoginPage from '@/views/LoginPage.vue';
+import SignupPage from '@/views/SignupPage.vue';
 
 export default {
   name: 'SharesPage',
   components: {
-    SharesTable: {
-      props: {
-        data: Array,
-        additionalFields: {
-          type: Array,
-          default: () => []
-        }
-      },
-      data() {
-        return {
-          currentSort: 'name',
-          currentSortDir: 'asc'
-        };
-      },
-      computed: {
-        sortedData() {
-          return [...this.data].sort((a, b) => {
-            let modifier = this.currentSortDir === 'asc' ? 1 : -1;
-            if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
-            if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
-            return 0;
-          });
-        }
-      },
-      methods: {
-        sortBy(sortKey) {
-          if (this.currentSort === sortKey) {
-            this.currentSortDir = this.currentSortDir === 'asc' ? 'desc' : 'asc';
-          } else {
-            this.currentSortDir = 'asc';
-          }
-          this.currentSort = sortKey;
-        }
-      },
-      template: `
-        <div class="shares-table">
-          <table>
-            <thead>
-              <tr>
-                <th @click="sortBy('name')">Name</th>
-                <th @click="sortBy('code')">Code</th>
-                <th v-for="(field, index) in additionalFields" :key="index">{{ field }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="share in sortedData" :key="share.code">
-                <td>{{ share.name || 'Unknown' }}</td>
-                <td>{{ share.code || 'Unknown' }}</td>
-                <td v-for="(field, index) in additionalFields" :key="index">{{ share[field.toLowerCase().replace(/ /g, '')] || '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `
-    }
+    SharesTable,
+    LoginPage,
+    SignupPage
   },
   data() {
     return {
@@ -139,23 +101,28 @@ export default {
       logoSrc: null,
       showLogin: false,
       showSignup: false,
-      priceData: [
-        { name: 'Apple', code: 'AAPL', last: 150, high: 155, low: 148, change: 1.5, changepercent: '1.01%', volume: 5000, time: '10:30 AM' },
-        { name: 'Microsoft', code: 'MSFT', last: 300, high: 305, low: 295, change: -2, changepercent: '-0.67%', volume: 3000, time: '10:30 AM' }
-      ],
-      fundamentalData: [
-        { name: 'Apple', code: 'AAPL', marketcap: '2T', revenue: '365B', peratio: 28, eps: 5.11, beta: 1.2 },
-        { name: 'Microsoft', code: 'MSFT', marketcap: '1.8T', revenue: '168B', peratio: 35, eps: 8.05, beta: 0.98 }
-      ],
-      gainers: [
-        { code: 'AAPL', changePercent: '1.01%' },
-        { code: 'GOOGL', changePercent: '0.85%' }
-      ],
-      losers: [
-        { code: 'MSFT', changePercent: '-0.67%' },
-        { code: 'AMZN', changePercent: '-0.55%' }
-      ]
+      priceData: [],
+      fundamentalData: [],
+      gainers: [],
+      losers: [],
+      currentPage: 1,
+      itemsPerPage: 25
     };
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil((this.activeSection === 'price' ? this.priceData.length : this.fundamentalData.length) / this.itemsPerPage);
+    },
+    paginatedPriceData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.priceData.slice(start, end);
+    },
+    paginatedFundamentalData() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.fundamentalData.slice(start, end);
+    }
   },
   methods: {
     openLogin() {
@@ -172,14 +139,56 @@ export default {
     },
     importLogo(src) {
       try {
-        return require(`@/assets/${src}`);
+        const images = require.context('@/assets', false, /\.(png|jpe?g|svg)$/);
+        return images(`./${src}`);
       } catch (e) {
         return require('@/assets/default.png');
       }
     },
     async fetchSharesData() {
       try {
-        const response = await axios.get('/api/shares');
+        const response = {
+          data: {
+            price: [
+              { name: 'Apple', code: 'AAPL', last: 145.64, high: 147.10, low: 144.89, change: -1.23, changePercent: -0.84, volume: 74232310, time: '16:00' },
+              { name: 'Microsoft', code: 'MSFT', last: 299.35, high: 301.45, low: 298.12, change: -2.00, changePercent: -0.66, volume: 24133190, time: '16:00' },
+              // Add 38 more example price data items
+              ...Array.from({ length: 38 }, (_, i) => ({
+                name: `Company${i + 1}`,
+                code: `COMP${i + 1}`,
+                last: Math.random() * 100,
+                high: Math.random() * 100,
+                low: Math.random() * 100,
+                change: Math.random() * 10,
+                changePercent: Math.random() * 10,
+                volume: Math.floor(Math.random() * 1000000),
+                time: '16:00'
+              }))
+            ],
+            fundamental: [
+              { name: 'Apple', code: 'AAPL', marketCap: '2.41T', revenue: '365.82B', peRatio: 28.43, eps: 5.61, beta: 1.20 },
+              { name: 'Microsoft', code: 'MSFT', marketCap: '2.29T', revenue: '184.90B', peRatio: 33.84, eps: 8.05, beta: 0.91 },
+              // Add 38 more example fundamental data items
+              ...Array.from({ length: 38 }, (_, i) => ({
+                name: `Company${i + 1}`,
+                code: `COMP${i + 1}`,
+                marketCap: `${Math.random() * 1000}B`,
+                revenue: `${Math.random() * 1000}B`,
+                peRatio: Math.random() * 100,
+                eps: Math.random() * 10,
+                beta: Math.random() * 2
+              }))
+            ],
+            gainers: [
+              { code: 'TSLA', last: 620.83, changePercent: 5.23 },
+              { code: 'NVDA', last: 750.25, changePercent: 4.89 }
+            ],
+            losers: [
+              { code: 'NFLX', last: 520.23, changePercent: -3.14 },
+              { code: 'FB', last: 330.45, changePercent: -2.56 }
+            ]
+          }
+        };
         this.priceData = response.data.price || [];
         this.fundamentalData = response.data.fundamental || [];
         this.gainers = response.data.gainers || [];
@@ -191,6 +200,23 @@ export default {
         this.gainers = [];
         this.losers = [];
       }
+    },
+    changeSection(section) {
+      this.activeSection = section;
+      this.currentPage = 1; // Reset to the first page when changing sections
+    },
+    prevPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+      }
+    },
+    openConsole(event) {
+      console.log("Console opened on right-click", event);
     }
   },
   created() {
@@ -201,18 +227,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-}
-
 .shares-page {
   display: flex;
   flex-direction: column;
@@ -264,18 +278,41 @@ nav a.active {
 }
 
 .content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-grow: 1;
+  padding: 20px;
+  flex-wrap: wrap; /* Allow flex items to wrap */
+}
+
+.main-content {
   flex: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%; /* Ensure it takes full width */
+}
+
+.header-with-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+.header-with-buttons h1 {
+  flex: 1;
+  margin: 0;
 }
 
 .switch-container {
   display: flex;
-  justify-content: center;
   gap: 20px;
-  margin-bottom: 20px;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .switch-container button {
@@ -293,7 +330,9 @@ nav a.active {
 }
 
 .shares-table-container {
-  width: 80%;
+  width: 100%; /* Ensure it takes full width */
+  overflow-x: auto; /* Add horizontal scroll */
+  margin-top: 30px; /* Added margin-top to create space between the header and the table */
 }
 
 .shares-table table {
@@ -302,11 +341,12 @@ nav a.active {
   margin: 20px 0;
 }
 
-.shares-table th, .shares-table td {
+.shares-table th,
+.shares-table td {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #ddd;
-  cursor: pointer;
+  white-space: nowrap; /* Prevent text wrapping for better layout on smaller screens */
 }
 
 .shares-table th {
@@ -317,12 +357,35 @@ nav a.active {
   background-color: #f9f9f9;
 }
 
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.pagination button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
 .side-panel {
-  width: 200px;
+  width: 100%;
+  max-width: 300px;
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 10px;
-  margin-top: 20px;
+  margin-top: 20px; /* Added margin-top for better spacing */
   background-color: #f9f9f9;
 }
 
@@ -349,19 +412,13 @@ nav a.active {
   margin-top: 20px;
 }
 
-.side-content ul {
-  list-style: none;
-  padding: 0;
-}
-
-.side-content li {
-  margin-bottom: 10px;
-}
-
 footer {
+  width: 100%;
   background-color: #333;
   color: #fff;
   padding: 20px;
+  box-sizing: border-box;
+  margin-top: auto;
 }
 
 .footer-content {
@@ -369,29 +426,107 @@ footer {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
 }
 
 .footer-left {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .footer-logo {
-  font-size: 24px;
-  font-weight: bold;
   color: #fff;
   text-decoration: none;
+  font-size: 20px;
+}
+
+.footer-social {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
 }
 
 .footer-social a {
   color: #fff;
   text-decoration: none;
-  margin-right: 15px;
+}
+
+.footer-right {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
 }
 
 .footer-right a {
   color: #fff;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+@media (max-width: 1200px) {
+  nav {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .side-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  nav {
+    gap: 20px;
+  }
+
+  .switch-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .switch-container {
+    align-items: center;
+  }
+
+  .header-with-buttons h1 {
+    text-align: center;
+  }
 }
 </style>
