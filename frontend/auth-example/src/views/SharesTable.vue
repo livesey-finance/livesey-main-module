@@ -21,7 +21,10 @@
       </thead>
       <tbody>
         <tr v-for="row in sortedData" :key="row.code">
-          <td v-for="header in relevantHeaders" :key="header.key">{{ row[header.key] }}</td>
+          <td>
+            <a @click.prevent="goToStockDetail(row.code)">{{ row.name }}</a>
+          </td>
+          <td v-for="header in relevantHeaders.slice(1)" :key="header.key">{{ row[header.key] }}</td>
         </tr>
       </tbody>
     </table>
@@ -60,7 +63,7 @@ export default {
   computed: {
     relevantHeaders() {
       return this.headers.filter(header => {
-        return header.key === 'code' || this.additionalFields.includes(header.label);
+        return header.key === 'name' || this.additionalFields.includes(header.label);
       });
     },
     sortedData() {
@@ -81,6 +84,9 @@ export default {
         this.sortedKey = key;
         this.sortedDirection = 'asc';
       }
+    },
+    goToStockDetail(stockCode) {
+      this.$router.push(`/shares/${stockCode}`);
     },
   },
 };

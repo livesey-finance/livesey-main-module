@@ -282,56 +282,55 @@ export default {
       // Add descriptions for each formula
       switch (formulaId) {
         case 'debtEquity':
-          return 'Lorem Ipsum';
+          return 'Debt/Equity Ratio: \\text{Debt/Equity} = \\frac{\\text{Total Liabilities}}{\\text{Total Shareholders\' Equity}}';
         case 'ltDebtEquity':
-          return 'Lorem Ipsum';
+          return 'Long Term Debt to Equity Ratio description here';
         case 'eps':
-          return 'Lorem Ipsum';
+          return 'Earnings Per Share description here';
         case 'roa':
-          return 'Lorem Ipsum';
+          return 'Return on Assets description here';
         case 'roe':
-          return 'Lorem Ipsum';
+          return 'Return on Equity description here';
         case 'roi':
-          return 'Lorem Ipsum';
+          return 'Return on Investment description here';
         case 'currentRatio':
-          return 'Lorem Ipsum';
+          return 'Current Ratio description here';
         case 'quickRatio':
-          return 'Lorem Ipsum';
+          return 'Quick Ratio description here';
         case 'cashRatio':
-          return 'Lorem Ipsum';
+          return 'Cash Ratio description here';
         case 'nwcPercentageRevenue':
-          return 'Lorem Ipsum';
+          return 'NWC Percentage Revenue description here';
         case 'netDebt':
-          return 'Lorem Ipsum';
+          return 'Net Debt description here';
         case 'pe':
-          return 'Lorem Ipsum';
+          return 'Price to Earnings Ratio description here';
         case 'forwardPE':
-          return 'Lorem Ipsum';
+          return 'Forward PE Ratio description here';
         case 'peg':
-          return 'Lorem Ipsum';
+          return 'Price/Earnings to Growth Ratio description here';
         case 'ps':
-          return 'Lorem Ipsum';
+          return 'Price to Sales Ratio description here';
         case 'pb':
-          return 'Lorem Ipsum';
+          return 'Price to Book Ratio description here';
         case 'pc':
-          return 'Lorem Ipsum';
+          return 'Price to Cash Flow Ratio description here';
         case 'pfcf':
-          return 'Lorem Ipsum';
+          return 'Price to Free Cash Flow Ratio description here';
         case 'cape':
-          return 'Lorem Ipsum';
+          return 'Cyclically Adjusted PE Ratio description here';
         case 'ev':
-          return 'Lorem Ipsum';
+          return 'Enterprise Value description here';
         case 'evToEbitda':
-          return 'Lorem Ipsum';
+          return 'EV/EBITDA Ratio description here';
         case 'evCFO':
-          return 'Lorem Ipsum';
+          return 'EV/CFO Ratio description here';
         case 'evFCFF':
-          return 'Lorem Ipsum';
+          return 'EV/FCFF Ratio description here';
         default:
-          return 'Lorem Ipsum';
+          return 'Description not available';
       }
     },
-    
   },
   mounted() {
     this.updateInputs();

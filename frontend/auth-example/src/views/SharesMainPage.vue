@@ -23,7 +23,7 @@
           </div>
         </div>
         <div v-if="activeSection === 'price'" class="shares-table-container">
-          <SharesTable :data="paginatedPriceData" :additionalFields="['Last', 'High', 'Low', 'Change', 'Change%', 'Volume', 'Time']" />
+          <SharesTable :data="paginatedPriceData" :additionalFields="['Name', 'Last', 'High', 'Low', 'Change', 'Change%', 'Volume']" />
         </div>
         <div v-else class="shares-table-container">
           <SharesTable :data="paginatedFundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" />
@@ -548,4 +548,14 @@ footer {
     text-align: center;
   }
 }
+.profile-container {
+  position: relative;
+}
+.profile-picture {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 </style>

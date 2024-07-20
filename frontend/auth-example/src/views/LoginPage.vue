@@ -1,18 +1,21 @@
 <template>
-  <div class="auth-container" @contextmenu="openConsole">
-    <div class="auth-box">
-      <span class="close-button" @click="closeModal">&times;</span>
-      <img src="@/assets/logo.png" alt="Logo" class="logo" />
-      <h2 class="signup-title">Sign In</h2>
-      <input type="text" placeholder="Username or Email" v-model="usernameOrEmail" class="auth-input" />
-      <div class="password-container">
-        <input :type="passwordFieldType" placeholder="Password" v-model="password" class="auth-input" />
-        <span class="toggle-password" @click="togglePasswordVisibility">{{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
+  <transition name="fade-out" @after-leave="closeModal">
+    <div v-if="isModalOpen" class="auth-container" @contextmenu="openConsole">
+      <div class="auth-box">
+        <span class="close-button" @click="startCloseModal">&times;</span>
+        <img src="@/assets/logo.png" alt="Logo" class="logo" />
+        <h2 class="signup-title">Sign In</h2>
+        <input type="text" placeholder="Username or Email" v-model="usernameOrEmail" class="auth-input" />
+        <div class="password-container">
+          <input :type="passwordFieldType" placeholder="Password" v-model="password" class="auth-input" />
+          <span class="toggle-password" @click="togglePasswordVisibility">{{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
+        </div>
+        <button @click="login">Sign In</button>
+        <p @click="switchToSignup">I am a new user! Sign up</p>
+        <p @click="googleAuth" class="google-auth">Continue with Google</p>
       </div>
-      <button @click="login">Sign In</button>
-      <p @click="switchToSignup">I am a new user! Sign up</p>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script>
@@ -23,6 +26,7 @@ export default {
       usernameOrEmail: '',
       password: '',
       passwordFieldType: 'password',
+      isModalOpen: true,
     };
   },
   methods: {
@@ -31,6 +35,9 @@ export default {
     },
     switchToSignup() {
       this.$emit('switchToSignup');
+    },
+    startCloseModal() {
+      this.isModalOpen = false;
     },
     closeModal() {
       this.$emit('close');
@@ -42,6 +49,10 @@ export default {
     togglePasswordVisibility() {
       this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
     },
+    googleAuth() {
+      // Handle Google authentication logic here
+      console.log('Redirecting to Google authentication...');
+    }
   },
 };
 </script>
@@ -54,6 +65,7 @@ export default {
   height: 100vh;
   background-color: transparent;
   padding: 20px;
+  animation: fadeIn 0.5s ease-in-out;
 }
 .auth-box {
   position: relative;
@@ -66,6 +78,7 @@ export default {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  animation: fadeIn 0.5s ease-in-out;
 }
 .close-button {
   position: absolute;
@@ -126,5 +139,38 @@ h2 {
   .toggle-password {
     right: 45px;
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-out-leave-active {
+  animation: fadeOut 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.google-auth {
+  margin-top: 2px;
+  cursor: pointer;
+  color: #4f4f4f;
+  text-align: center;
 }
 </style>

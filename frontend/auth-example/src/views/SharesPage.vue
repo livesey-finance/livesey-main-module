@@ -533,7 +533,7 @@ nav a.active {
 }
 
 .tabs button:hover {
-  background-color: #A3A9A9;
+  background-color: #9BA7B0;
   color: #333;
   transition: 0.2s;
 }
