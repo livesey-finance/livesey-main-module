@@ -4,8 +4,8 @@
       <img :src="logoSrc" alt="Logo" class="logo" />
       <nav>
         <a href="/">Home</a>
-        <a href="#" class="active">Shares</a>
-        <a href="/crypto">Crypto</a>
+        <a href="/shares">Shares</a>
+        <a href="#" class="active">Crypto</a>
         <a href="/portfolio">Portfolio</a>
         <a href="/calculator">Calculator</a>
         <a href="/about">About</a>
@@ -16,17 +16,10 @@
     <div class="content">
       <div class="main-content">
         <div class="header-with-buttons">
-          <h1>Stock Quotes</h1>
-          <div class="switch-container">
-            <button @click="changeSection('price')" :class="{ active: activeSection === 'price' }">Price</button>
-            <button @click="changeSection('fundamental')" :class="{ active: activeSection === 'fundamental' }">Fundamental</button>
-          </div>
+          <h1>Cryptocurrency</h1>
         </div>
         <div v-if="activeSection === 'price'" class="shares-table-container">
-          <SharesTable :data="paginatedPriceData" :additionalFields="['Last', 'High', 'Low', 'Change', 'Change%', 'Volume', 'Time']" />
-        </div>
-        <div v-else class="shares-table-container">
-          <SharesTable :data="paginatedFundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" />
+          <CryptoTable :data="paginatedPriceData" :additionalFields="['Name', 'Last', 'Change[1h]', 'Change[24h]', 'Change[7d]', 'Time']" />
         </div>
         <div class="pagination">
           <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
@@ -41,10 +34,10 @@
           <button @click="activeCategory = 'losers'" :class="{ active: activeCategory === 'losers' }">Losers %</button>
         </div>
         <div v-if="activeCategory === 'gainers'" class="side-content">
-          <SharesTable :data="gainers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" />
+          <CryptoTable :data="gainers" :additionalFields="['Code', 'Last', 'Change[24h]']" :isTopTen="true" />
         </div>
         <div v-else class="side-content">
-          <SharesTable :data="losers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" />
+          <CryptoTable :data="losers" :additionalFields="['Code', 'Last', 'Change[24h]']" :isTopTen="true" />
         </div>
       </div>
     </div>
@@ -83,14 +76,14 @@
 
 
 <script>
-import SharesTable from './SharesTable.vue';
+import CryptoTable from './CryptoTable.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
 export default {
   name: 'SharesPage',
   components: {
-    SharesTable,
+    CryptoTable,
     LoginPage,
     SignupPage
   },

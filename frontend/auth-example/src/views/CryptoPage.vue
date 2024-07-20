@@ -1,30 +1,30 @@
 <template>
-  <div class="crypto-page">
+  <div class="shares-page">
     <header>
       <img :src="logoSrc" alt="Logo" class="logo" />
       <nav>
         <a href="/">Home</a>
-        <a href="/shares">Shares</a>
-        <a href="#" class="active">Crypto</a>
+        <a href="/shares" class="active">Shares</a>
+        <a href="/crypto">Crypto</a>
         <a href="/portfolio">Portfolio</a>
-        <a href="#">Calculator</a>
-        <a href="#">About</a>
+        <a href="/calculator">Calculator</a>
+        <a href="/about">About</a>
         <a @click="openLogin">Sign In</a>
         <a @click="openSignup">Sign Up</a>
       </nav>
     </header>
     <div class="content">
-      <div class="crypto-info">
-        <img :src="cryptoLogoSrc" alt="Crypto Logo" class="crypto-logo" />
-        <div class="crypto-details">
-          <h1>{{ cryptoName }}</h1>
-          <h2>{{ cryptoCode }}</h2>
+      <div class="company-info">
+        <img :src="companyLogoSrc" alt="Company Logo" class="company-logo" />
+        <div class="company-details">
+          <h1>{{ companyName }}</h1>
+          <h2>{{ companyCode }}</h2>
         </div>
         <button @click="togglePortfolio" :class="['portfolio-btn', { 'remove-btn': isInPortfolio }]">
           {{ isInPortfolio ? '- Remove from portfolio' : '+ Add to portfolio' }}
         </button>
       </div>
-      <div class="metrics-container">
+      <div class="ratios-container">
         <div class="tabs">
           <button @click="activeTab = 'general'" :class="{ active: activeTab === 'general' }">General Metrics</button>
           <button @click="activeTab = 'ratios'" :class="{ active: activeTab === 'ratios' }">Ratios & Analytics</button>
@@ -33,110 +33,102 @@
           <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity Metrics</button>
           <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other Metrics</button>
         </div>
-        <div class="metrics-content">
-          <div v-if="activeTab === 'general'" class="metrics">
-            <table class="metrics-table">
+        <div class="ratios-content">
+          <div v-if="activeTab === 'general'" class="ratios">
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Metric</th>
-                  <th>Description</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="metric in generalMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
-                  <td>{{ metric.description }}</td>
                   <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'ratios'" class="metrics">
-            <table class="metrics-table">
+          <div v-if="activeTab === 'ratios'" class="ratios">
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
-                  <th>Description</th>
                   <th>Value</th>
+                  <th>Estimation</th>
+                  <th>Normal Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ratio in ratiosMetrics" :key="ratio.name">
+                <tr v-for="ratio in ratios" :key="ratio.name">
                   <td>{{ ratio.name }}</td>
-                  <td>{{ ratio.description }}</td>
                   <td>{{ ratio.value }}</td>
+                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
+                  <td>{{ ratio.normalValue }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'network'" class="metrics">
-            <table class="metrics-table">
+          <div v-if="activeTab === 'network'" class="ratios">
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Metric</th>
-                  <th>Description</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="metric in networkMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
-                  <td>{{ metric.description }}</td>
                   <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'social'" class="metrics">
-            <table class="metrics-table">
+          <div v-if="activeTab === 'social'" class="ratios">
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Metric</th>
-                  <th>Description</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="metric in socialMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
-                  <td>{{ metric.description }}</td>
                   <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'liquidity'" class="metrics">
-            <table class="metrics-table">
+          <div v-if="activeTab === 'liquidity'" class="ratios">
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Metric</th>
-                  <th>Description</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="metric in liquidityMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
-                  <td>{{ metric.description }}</td>
                   <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'other'" class="metrics">
-            <table class="metrics-table">
+          <div v-if="activeTab === 'other'" class="ratios">
+            <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Metric</th>
-                  <th>Description</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="metric in otherMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
-                  <td>{{ metric.description }}</td>
                   <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
@@ -148,7 +140,7 @@
     <footer>
       <div class="footer-content">
         <div class="footer-left">
-          <a href="#" class="footer-logo">CryptoApp</a>
+          <a href="#" class="footer-logo">Livesey</a>
           <div class="footer-social">
             <a href="#">Instagram</a>
             <a href="#">LinkedIn</a>
@@ -158,6 +150,8 @@
         <div class="footer-right">
           <a href="#">About Us</a>
           <a href="#">Terms of Service</a>
+          <a href="#">Editorial Policy</a>
+          <a href="#">Advertise</a>
           <a href="#">Privacy Policy</a>
           <a href="#">Contact Us</a>
         </div>
@@ -167,7 +161,6 @@
     <div v-if="showLogin" class="modal" @click.self="closeModal">
       <LoginPage @close="closeModal" @switchToSignup="openSignup" />
     </div>
-
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
       <SignupPage @close="closeModal" @switchToLogin="openLogin" />
@@ -181,7 +174,7 @@ import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
 export default {
-  name: 'CryptoPage',
+  name: 'SharesPage',
   components: {
     LoginPage,
     SignupPage
@@ -191,13 +184,13 @@ export default {
       isInPortfolio: false,
       activeTab: 'general',
       logoSrc: null,
-      cryptoLogoSrc: null,
-      cryptoName: 'Unknown',
-      cryptoCode: 'unknown',
+      companyLogoSrc: null,
+      companyName: 'Unknown',
+      companyCode: 'unknown',
       showLogin: false,
       showSignup: false,
       generalMetrics: [],
-      ratiosMetrics: [],
+      ratios: [],
       networkMetrics: [],
       socialMetrics: [],
       liquidityMetrics: [],
@@ -207,11 +200,6 @@ export default {
   methods: {
     togglePortfolio() {
       this.isInPortfolio = !this.isInPortfolio;
-      if (this.isInPortfolio) {
-        console.log('Added to portfolio');
-      } else {
-        console.log('Removed from portfolio');
-      }
     },
     openLogin() {
       this.showLogin = true;
@@ -232,137 +220,94 @@ export default {
         return require('@/assets/default.png');
       }
     },
-    async fetchCryptoDetails() {
-      const cryptoCode = this.$route.params.code || 'unknown';
+    async fetchCompanyDetails() {
+      const companyCode = this.$route.params.code || 'unknown';
       try {
-        const response = await axios.get(`/api/crypto-details/${cryptoCode}`);
+        const response = await axios.get(`/api/company-details/${companyCode}`);
         const data = response.data || {};
-        this.cryptoName = data.name || 'Unknown';
-        this.cryptoCode = data.code || 'unknown';
-        this.cryptoLogoSrc = this.importLogo(data.logoSrc || 'default.png');
+        this.companyName = data.name || 'Unknown';
+        this.companyCode = data.code || 'unknown';
+        this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
       } catch (error) {
-        console.error('Error fetching crypto details:', error);
-        this.cryptoName = 'Unknown';
-        this.cryptoCode = 'unknown';
-        this.cryptoLogoSrc = this.importLogo('default.png');
+        console.error('Error fetching company details:', error);
+        this.companyName = 'Unknown';
+        this.companyCode = 'unknown';
+        this.companyLogoSrc = this.importLogo('default.png');
       }
     },
-    async fetchGeneralMetrics() {
+    async fetchMetrics() {
       try {
-        const response = await axios.get('/api/general-metrics');
-        this.generalMetrics = response.data.map(metric => ({
-          name: metric.name || 'Unknown',
-          value: metric.value || '00.00',
-          estimation: metric.estimation || 'not estimated',
-          normalValue: metric.normalValue || '00.00'
-        }));
+        const response = await axios.get('/api/crypto-metrics');
+        const data = response.data || {};
+        this.generalMetrics = data.general || [
+          { name: 'Market Cap', value: '500B' },
+          { name: 'Revenue', value: '300B' }
+        ];
+        this.ratios = data.ratios || [
+          { name: 'P/E Ratio', value: '25', estimation: 'good', normalValue: '15-25' },
+          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' }
+        ];
+        this.networkMetrics = data.network || [
+          { name: 'Node Count', value: '1000' },
+          { name: 'Hash Rate', value: '50 TH/s' }
+        ];
+        this.socialMetrics = data.social || [
+          { name: 'Twitter Followers', value: '1M' },
+          { name: 'Reddit Subscribers', value: '500K' }
+        ];
+        this.liquidityMetrics = data.liquidity || [
+          { name: 'Current Ratio', value: '2.0' },
+          { name: 'Quick Ratio', value: '1.5' }
+        ];
+        this.otherMetrics = data.other || [
+          { name: 'Employee Count', value: '50K' },
+          { name: 'Office Locations', value: '20' }
+        ];
       } catch (error) {
-        console.error('Error fetching general metrics:', error);
+        console.error('Error fetching metrics:', error);
         this.generalMetrics = [
-          { name: 'Market Cap', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Volume', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Supply', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+          { name: 'Market Cap', value: '500B' },
+          { name: 'Revenue', value: '300B' }
         ];
-      }
-    },
-    async fetchRatiosMetrics() {
-      try {
-        const response = await axios.get('/api/ratios-metrics');
-        this.ratiosMetrics = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching ratios metrics:', error);
-        this.ratiosMetrics = [
-          { name: 'P/E', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Forward P/E', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'PEG', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'P/S', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'P/B', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        this.ratios = [
+          { name: 'P/E Ratio', value: '25', estimation: 'good', normalValue: '15-25' },
+          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' }
         ];
-      }
-    },
-    async fetchNetworkMetrics() {
-      try {
-        const response = await axios.get('/api/network-metrics');
-        this.networkMetrics = response.data.map(metric => ({
-          name: metric.name || 'Unknown',
-          value: metric.value || '00.00',
-          estimation: metric.estimation || 'not estimated',
-          normalValue: metric.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching network metrics:', error);
         this.networkMetrics = [
-          { name: 'Hash Rate', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Node Count', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+          { name: 'Node Count', value: '1000' },
+          { name: 'Hash Rate', value: '50 TH/s' }
         ];
-      }
-    },
-    async fetchSocialMetrics() {
-      try {
-        const response = await axios.get('/api/social-metrics');
-        this.socialMetrics = response.data.map(metric => ({
-          name: metric.name || 'Unknown',
-          value: metric.value || '00.00',
-          estimation: metric.estimation || 'not estimated',
-          normalValue: metric.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching social metrics:', error);
         this.socialMetrics = [
-          { name: 'Twitter Mentions', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Reddit Activity', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+          { name: 'Twitter Followers', value: '1M' },
+          { name: 'Reddit Subscribers', value: '500K' }
         ];
-      }
-    },
-    async fetchLiquidityMetrics() {
-      try {
-        const response = await axios.get('/api/liquidity-metrics');
-        this.liquidityMetrics = response.data.map(metric => ({
-          name: metric.name || 'Unknown',
-          value: metric.value || '00.00',
-          estimation: metric.estimation || 'not estimated',
-          normalValue: metric.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching liquidity metrics:', error);
         this.liquidityMetrics = [
-          { name: 'Volume 24h', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Bid-Ask Spread', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+          { name: 'Current Ratio', value: '2.0' },
+          { name: 'Quick Ratio', value: '1.5' }
+        ];
+        this.otherMetrics = [
+          { name: 'Employee Count', value: '50K' },
+          { name: 'Office Locations', value: '20' }
         ];
       }
     },
-    async fetchOtherMetrics() {
-      try {
-        const response = await axios.get('/api/other-metrics');
-        this.otherMetrics = response.data.map(metric => ({
-          name: metric.name || 'Unknown',
-          value: metric.value || '00.00',
-          estimation: metric.estimation || 'not estimated',
-          normalValue: metric.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching other metrics:', error);
-        this.otherMetrics = [
-          { name: 'Developer Activity', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Partnership Announcements', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
-        ];
+    getEstimationClass(estimation) {
+      switch (estimation) {
+        case 'good':
+          return 'good';
+        case 'normal':
+          return 'normal';
+        case 'overvalued':
+          return 'overvalued';
+        default:
+          return 'not-estimated';
       }
     }
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
-    this.fetchCryptoDetails();
-    this.fetchGeneralMetrics();
-    this.fetchRatiosMetrics();
-    this.fetchNetworkMetrics();
-    this.fetchSocialMetrics();
-    this.fetchLiquidityMetrics();
-    this.fetchOtherMetrics();
+    this.fetchCompanyDetails();
+    this.fetchMetrics();
   }
 };
 </script>
@@ -380,7 +325,7 @@ html, body {
   overflow-x: hidden; /* Hide horizontal overflow */
 }
 
-.crypto-page {
+.shares-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -402,7 +347,7 @@ header {
 .logo {
   margin-left: 30px;
   height: 60px;
-  max-width: 100%; /* Ensure logo does not overflow */
+  max-width: 100%;
 }
 
 nav {
@@ -413,14 +358,21 @@ nav {
 }
 
 nav a {
+  color: #000;
   text-decoration: none;
-  color: #4f4f4f;
-  white-space: nowrap; /* Prevent text wrapping */
+  padding: 10px 20px;
+  border-radius: 5px;
+}
+
+nav a:hover {
+  background-color: #fff;
+  transition: 0.2s;
 }
 
 nav a.active {
-  font-weight: bold;
-  color: #000;
+  background-color: #333;
+  color: #fff;
+  transition: 0.2s;
 }
 
 .content {
@@ -433,7 +385,7 @@ nav a.active {
   box-sizing: border-box;
 }
 
-.crypto-info {
+.company-info {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -442,12 +394,12 @@ nav a.active {
   text-align: center;
 }
 
-.crypto-logo {
+.company-logo {
   height: 80px;
   margin-right: 40px;
 }
 
-.crypto-details {
+.company-details {
   display: flex;
   flex-direction: column;
 }
@@ -456,7 +408,7 @@ nav a.active {
   background-color: #4caf50;
   color: #fff;
   border: none;
-  padding: 5px 10px; /* Reduced padding for smaller button */
+  padding: 15px 5px; /* Reduced padding for smaller button */
   cursor: pointer;
   margin-left: 80px;
 }
@@ -478,20 +430,34 @@ nav a.active {
   gap: 10px;
   margin-bottom: 20px;
   flex-wrap: wrap; /* Allow items to wrap */
+  color: #000;
+  text-decoration: none;
+  font-size: 22px;
 }
 
 .tabs button {
   padding: 10px 20px;
+  font-size: 18px;
   cursor: pointer;
   border: none;
-  background-color: #ddd;
+  color: #333;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.tabs button:hover {
+  background-color: #A3A9A9;
+  color: #333;
+  transition: 0.2s;
 }
 
 .tabs button.active {
-  background-color: #868B8E;
+  background-color: #333;
+  color: #fff;
+  transition: 0.2s;
 }
 
-.metrics-content {
+.ratios-content {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -499,11 +465,11 @@ nav a.active {
   overflow-x: auto; /* Enable horizontal scrolling */
 }
 
-.metrics-content .metrics {
+.ratios-content .ratios {
   width: 100%;
 }
 
-.metrics-table {
+.ratios-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
@@ -524,48 +490,70 @@ th {
   text-align: center;
 }
 
+.good {
+  color: green;
+}
+
+.normal {
+  color: orange;
+}
+
+.overvalued {
+  color: red;
+}
+
+.not-estimated {
+  color: gray;
+}
+
 footer {
   width: 100%;
-  background-color: #f6f4f0;
+  background-color: #333;
+  color: #fff;
   padding: 20px;
   box-sizing: border-box;
   margin-top: auto;
 }
-
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* Allow items to wrap */
+  width: 100%;
 }
-
 .footer-left {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
-
 .footer-logo {
-  color: #4f4f4f;
+  color: #fff;
   text-decoration: none;
   font-size: 20px;
 }
-
 .footer-social {
   display: flex;
   gap: 20px;
   margin-top: 10px;
 }
-
+.footer-social a {
+  color: #fff; /* Ensure the social links are white */
+  text-decoration: none;
+}
+.footer-social a:hover {
+  text-decoration: underline;
+}
 .footer-right {
   display: flex;
   gap: 20px;
   font-size: 16px;
+  margin-top: 20px;
 }
-
 .footer-right a {
-  color: #4f4f4f;
+  color: #fff;
   text-decoration: none;
+}
+.footer-right a:hover {
+  text-decoration: underline;
 }
 
 .modal {
@@ -661,12 +649,12 @@ h2 {
     margin-right: 0;
   }
 
-  .crypto-info {
+  .company-info {
     flex-direction: column;
     text-align: center;
   }
 
-  .crypto-logo {
+  .company-logo {
     margin-right: 0;
   }
 

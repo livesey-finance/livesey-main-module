@@ -5,10 +5,10 @@
       <nav>
         <a href="/">Home</a>
         <a href="/shares">Shares</a>
-        <a href="#">Crypto</a>
+        <a href="/crypto">Crypto</a>
         <a href="/portfolio" class="active">Portfolio</a>
-        <a href="#">Calculator</a>
-        <a href="#">About</a>
+        <a href="/calculator">Calculator</a>
+        <a href="/about">About</a>
         <a @click="openLogin">Sign In</a>
         <a @click="openSignup">Sign Up</a>
       </nav>
@@ -348,47 +348,52 @@ footer {
   box-sizing: border-box;
   margin-top: auto;
 }
+
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  flex-wrap: wrap;
 }
+
 .footer-left {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
+
 .footer-logo {
   color: #fff;
   text-decoration: none;
   font-size: 20px;
 }
+
 .footer-social {
   display: flex;
   gap: 20px;
   margin-top: 10px;
 }
+
 .footer-social a {
-  color: #fff; /* Ensure the social links are white */
-  text-decoration: none;
-}
-.footer-social a:hover {
-  text-decoration: underline;
-}
-.footer-right {
-  display: flex;
-  gap: 20px;
-  font-size: 16px;
-  margin-top: 20px;
-}
-.footer-right a {
   color: #fff;
   text-decoration: none;
 }
-.footer-right a:hover {
-  text-decoration: underline;
+
+.footer-right {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
+
+.footer-right a {
+  color: #fff;
+  text-decoration: none;
+  margin-right: 15px;
+}
+
+
 .modal {
   position: fixed;
   top: 0;

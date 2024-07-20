@@ -523,14 +523,17 @@ nav a.active {
 }
 
 .tabs button {
-  color: #fff;
-  text-decoration: none;
   padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  color: #333;
+  background-color: #f0f0f0;
   border-radius: 5px;
 }
 
 .tabs button:hover {
-  background-color: #f6f4f0;
+  background-color: #A3A9A9;
   color: #333;
   transition: 0.2s;
 }
