@@ -7,6 +7,7 @@ import SharesMainPage from '@/views/SharesMainPage.vue';
 import CryptoPage from '@/views/CryptoPage.vue';
 import CryptoMainPage from '@/views/CryptoMainPage.vue';
 import CalculatorPage from '@/views/CalculatorPage.vue';
+import HomePage from '@/views/HomePage.vue';
 
 const routes = [
   {
@@ -48,6 +49,11 @@ const routes = [
     path: '/calculator',
     name: 'calculator',
     component: CalculatorPage,
+  },
+  {
+    path: '/',
+    name: 'home',
+    component: HomePage,
   },
 ];
 

@@ -1,7 +1,16 @@
 <template>
-  <div class="calculator-container">
+  <div class="calculator-container" @contextmenu="openConsole">
     <header>
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <div class="search-container">
+        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <ul v-if="searchQuery.length > 0" class="suggestions">
+          <li v-if="suggestions.length === 0">no matchings were found</li>
+          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+            {{ item.name }} ({{ item.code }})
+          </li>
+        </ul>
+      </div>
       <nav>
         <a href="/">Home</a>
         <a href="/shares">Shares</a>
@@ -9,8 +18,15 @@
         <a href="/portfolio">Portfolio</a>
         <a href="#" class="active">Calculator</a>
         <a href="/about">About</a>
-        <a @click="openLogin">Sign In</a>
-        <a @click="openSignup">Sign Up</a>
+        <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
+        <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
+        <div v-if="isLoggedIn" class="user-profile">
+          <img :src="userIcon" alt="User Icon" @click="toggleProfileMenu" />
+          <div v-if="showProfileMenu" class="profile-menu">
+            <a @click="viewProfile">Profile</a>
+            <a @click="logout">Log Out</a>
+          </div>
+        </div>
       </nav>
     </header>
     <div class="content">
@@ -61,7 +77,7 @@
 
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
     </div>
 
     <!-- Signup Modal -->
@@ -97,6 +113,7 @@ import {
   calculateROE,
   calculateROI,
 } from "livsey-finance-library";
+import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
@@ -170,6 +187,11 @@ export default {
       result: null,
       showLogin: false,
       showSignup: false,
+      isLoggedIn: false,
+      showProfileMenu: false,
+      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
+      searchQuery: '',
+      suggestions: []
     };
   },
   methods: {
@@ -262,6 +284,25 @@ export default {
       const input = this.formulaInputs[index];
       input.error = isNaN(input.value) || input.value === null;
     },
+    async fetchSuggestions() {
+      try {
+        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        this.suggestions = response.data || [];
+        if (this.suggestions.length === 0) {
+          this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+      }
+    },
+    selectSuggestion(item) {
+      if (item.code) {
+        this.$router.push(`/shares/${item.code}`);
+      }
+      this.suggestions = [];
+      this.searchQuery = '';
+    },
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
@@ -274,69 +315,88 @@ export default {
       this.showLogin = false;
       this.showSignup = false;
     },
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+    },
+    viewProfile() {
+      // Navigate to profile page or show profile details
+      console.log('Viewing profile');
+    },
+    logout() {
+      this.isLoggedIn = false;
+      this.showProfileMenu = false;
+      // Perform any additional logout operations, like clearing tokens
+    },
+    login() {
+      this.isLoggedIn = true;
+      this.showLogin = false;
+    },
     getFormulaHeader(formulaId) {
       const formula = this.formulas.find(f => f.id === formulaId);
       return formula ? formula.name : '';
     },
     getFormulaDescription(formulaId) {
-      // Add descriptions for each formula
       switch (formulaId) {
         case 'debtEquity':
-          return 'Debt/Equity Ratio: \\text{Debt/Equity} = \\frac{\\text{Total Liabilities}}{\\text{Total Shareholders\' Equity}}';
+          return 'The debt-to-equity (D/E) ratio assesses a company\'s financial leverage by dividing its total liabilities by shareholder equity. This crucial metric in corporate finance indicates the extent to which a company relies on debt to fund its operations, as opposed to using its own resources.';
         case 'ltDebtEquity':
-          return 'Long Term Debt to Equity Ratio description here';
+          return 'The long-term debt to equity ratio indicates the proportion of a company\'s assets that are funded through long-term financial commitments, such as loans. This ratio is computed by dividing long-term debt by shareholders\' equity.';
         case 'eps':
-          return 'Earnings Per Share description here';
+          return 'Earnings per share (EPS) measures a company\'s profitability by showing the profit earned on each outstanding share of common stock. It is calculated by dividing the company\'s net income by the number of outstanding shares.';
         case 'roa':
-          return 'Return on Assets description here';
+          return 'The term "return on assets" (ROA) describes a financial ratio that measures a company\'s profitability relative to its total assets. Corporate management, analysts, and investors use ROA to assess how effectively a company utilizes its assets to produce profit.';
         case 'roe':
-          return 'Return on Equity description here';
+          return 'Return on equity (ROE) is a financial performance metric obtained by dividing net income by shareholders\' equity. Since shareholders\' equity equals a company\'s assets minus its debt, ROE is viewed as the return on net assets. ROE serves as an indicator of a corporation\'s profitability and efficiency in generating profits. A higher ROE signifies that the company\'s management is more effective at generating income and growth from its equity financing.';
         case 'roi':
-          return 'Return on Investment description here';
+          return 'Return on investment (ROI) is a metric used to assess how efficiently or profitably an investment is performing, or to compare the effectiveness of multiple investments. It aims to quantify the return generated by a specific investment in relation to its cost.';
         case 'currentRatio':
-          return 'Current Ratio description here';
+          return 'The current ratio is a liquidity metric that assesses a company’s capacity to meet its short-term liabilities, due within a year. It indicates to investors and analysts how effectively a company can utilize its current assets to cover its current debts and other payables. A current ratio that matches or slightly exceeds the industry average is typically deemed acceptable. A ratio below the industry average may signal a higher risk of financial distress or default. Conversely, a significantly high current ratio compared to peers suggests that the company might not be using its assets efficiently. This ratio is termed "current" because it includes all current assets and liabilities, unlike some other liquidity ratios. It is also known as the working capital ratio.';
         case 'quickRatio':
-          return 'Quick Ratio description here';
+          return 'The quick ratio is an indicator of a company’s short-term liquidity position and measures a company’s ability to meet its short-term obligations with its most liquid assets. Since it indicates the company’s ability to instantly use its near-cash assets (assets that can be converted quickly to cash) to pay down its current liabilities, it is also called the acid test ratio. An “acid test” is a slang term for a quick test designed to produce instant results.';
         case 'cashRatio':
-          return 'Cash Ratio description here';
+          return 'The cash ratio is a measurement of a company\'s liquidity. It calculates the ratio of a company\'s total cash and cash equivalents to its current liabilities. The metric evaluates a company\'s ability to repay its short-term debt with cash or near-cash resources such as easily marketable securities. This information is useful to creditors when they decide how much money, if any, they would be willing to loan to a company.';
         case 'nwcPercentageRevenue':
-          return 'NWC Percentage Revenue description here';
+          return 'Net Working Capital (NWC) % Revenue is a financial metric that measures the proportion of a company\'s net working capital relative to its total revenue. Net working capital is calculated as current assets minus current liabilities, and it represents the short-term liquidity and operational efficiency of a company. This ratio provides insights into how effectively a company is managing its working capital in relation to its revenue generation. A higher NWC % Revenue indicates that a larger portion of the company\'s revenue is tied up in working capital, which might affect its ability to invest in growth opportunities. Conversely, a lower ratio suggests more efficient working capital management, allowing more revenue to be available for other purposes such as reinvestment or debt repayment. This metric is particularly useful for investors and financial analysts in assessing a company\'s operational health and its ability to meet short-term obligations.';
         case 'netDebt':
-          return 'Net Debt description here';
+          return 'Net debt is a liquidity metric that\'s used to determine how well a company can pay all its debts if they come due immediately. Net debt shows how much debt a company has on its balance sheet compared to its liquid assets. It shows how much cash would remain if all debts were paid off and if a company has sufficient liquidity to meet its debt obligations.';
         case 'pe':
-          return 'Price to Earnings Ratio description here';
+          return 'The price-to-earnings ratio (P/E) is one of the most widely used metrics for investors and analysts to determine stock valuation. It shows whether a company’s stock price is overvalued or undervalued and can reveal how a stock’s valuation compares with its industry group or a benchmark like the S&P 500 Index. A good P/E for one group or sector could be a poor P/E for another sector, so comparisons should compare similar companies. The P/E ratio helps investors determine the market value of a stock compared with the company’s earnings. It shows what the market is willing to pay for a stock based on its past or future earnings.';
         case 'forwardPE':
-          return 'Forward PE Ratio description here';
+          return 'The forward P/E ratio (or forward price-to-earnings ratio) divides the current share price of a company by the estimated future (“forward”) earnings per share (EPS) of that company. For valuation purposes, a forward P/E ratio is typically considered more relevant than a historical P/E ratio.';
         case 'peg':
-          return 'Price/Earnings to Growth Ratio description here';
+          return 'The price/earnings to growth ratio (PEG ratio) is a stock\'s price-to-earnings (P/E) ratio divided by the growth rate of its earnings for a specified time period. The PEG ratio is used to determine a stock\'s value while also factoring in the company\'s expected earnings growth, and it is thought to provide a more complete picture than the more standard P/E ratio.';
         case 'ps':
-          return 'Price to Sales Ratio description here';
+          return 'The price-to-sales (P/S) ratio is a valuation ratio that compares a company’s stock price to its revenues. It is an indicator of the value that financial markets have placed on each dollar of a company’s sales or revenues.';
         case 'pb':
-          return 'Price to Book Ratio description here';
+          return 'A company\'s price-to-book ratio is the company\'s current stock price per share divided by its book value per share (BVPS). This shows the market valuation of a company compared to its book value. If your goal as an investor is to unearth high-growth companies selling at low-growth prices, the price-to-book ratio (P/B) offers an effective approach to finding undervalued companies. The P/B ratio can also help investors identify and avoid overvalued companies. However, this ratio has its limitations and there are circumstances where it may not be the most effective metric for valuation.';
         case 'pc':
-          return 'Price to Cash Flow Ratio description here';
+          return 'The price-to-cash flow (P/CF) ratio is a stock valuation indicator or multiple that measures the value of a stock’s price relative to its operating cash flow per share. The ratio uses operating cash flow (OCF), which adds back non-cash expenses such as depreciation and amortization to net income. P/CF is especially useful for valuing stocks that have positive cash flow but are not profitable because of large non-cash charges.';
         case 'pfcf':
-          return 'Price to Free Cash Flow Ratio description here';
+          return 'Price to free cash flow (P/FCF) is an equity valuation metric that compares a company\'s per-share market price to its free cash flow (FCF). This metric is very similar to the valuation metric of price to cash flow but is considered a more exact measure because it uses free cash flow, which subtracts capital expenditures (CAPEX) from a company\'s total operating cash flow, thereby reflecting the actual cash flow available to fund non-asset-related growth. Companies can use this metric to base growth decisions and maintain acceptable free cash flow levels.';
         case 'cape':
-          return 'Cyclically Adjusted PE Ratio description here';
+          return 'The CAPE ratio is a valuation measure that uses real earnings per share (EPS) over a 10-year period to smooth out fluctuations in corporate profits that occur over different periods of a business cycle. The CAPE ratio, an acronym for cyclically adjusted price-to-earnings ratio, was popularized by Yale University professor Robert Shiller. It is also known as the Shiller P/E ratio. The P/E ratio is a valuation metric that measures a stock’s price relative to the company’s earnings per share. EPS is a company’s profit divided by the outstanding equity shares. The CAPE ratio is generally applied to broad equity indexes to assess whether the market is undervalued or overvalued. While it is a popular and widely followed measure, several leading industry practitioners have called into question its utility as a predictor of future stock market returns.';
         case 'ev':
-          return 'Enterprise Value description here';
+          return 'Enterprise value (EV) measures a company’s total value, often used as a more comprehensive alternative to market capitalization. EV includes in its calculation not only the market capitalization of a company but also short-term and long-term debt and any cash or cash equivalents on the company’s balance sheet.';
         case 'evToEbitda':
-          return 'EV/EBITDA Ratio description here';
+          return 'The EV/EBITDA ratio is a popular metric used as a valuation tool to compare the value of a company, debt included, to the company’s cash earnings less non-cash expenses. It\'s ideal for analysts and investors looking to compare companies within the same industry. The enterprise-value-to-EBITDA ratio is calculated by dividing EV by EBITDA or earnings before interest, taxes, depreciation, and amortization. Typically, EV/EBITDA values below 10 are seen as healthy. However, the comparison of relative values among companies within the same industry is the best way for investors to determine companies with the healthiest EV/EBITDA within a specific sector.';
         case 'evCFO':
-          return 'EV/CFO Ratio description here';
+          return 'Cash Flow from Operations (CFO) represents the net cash generated from a company’s core business operations, excluding capital expenditures and financing activities. It measures the company\'s ability to generate cash flow from its regular business activities.';
         case 'evFCFF':
-          return 'EV/FCFF Ratio description here';
+          return 'Free Cash Flow to Firm (FCFF) represents the net cash available to the firm after accounting for capital expenditures and operating expenses, before any interest payments are made. It measures the company\'s ability to generate cash flow from its operations that can be used for expansion, debt repayment, or other purposes.';
         default:
           return 'Description not available';
       }
     },
+    openConsole(event) {
+      console.log("Console opened on right-click", event);
+    }
   },
   mounted() {
     this.updateInputs();
   },
 };
 </script>
+
 
 <style scoped>
 .calculator-container {
@@ -357,31 +417,73 @@ header {
   width: 100%;
   box-sizing: border-box;
 }
+
 .logo {
   margin-left: 30px;
   height: 60px;
   max-width: 100%;
 }
+
 nav {
   display: flex;
   gap: 30px;
   margin-right: 100px;
   font-size: 22px;
 }
+
 nav a {
   color: #000;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
+
 nav a:hover {
   background-color: #fff;
   transition: 0.2s;
 }
+
 nav a.active {
   background-color: #333;
   color: #fff;
   transition: 0.2s;
+}
+
+.user-profile {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-profile img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  color: #333;
+  text-decoration: none;
+}
+
+.profile-menu a:hover {
+  background-color: #f6f4f0;
+}
+
+h2 {
+  font-size: 1.7em;
 }
 
 .content {
@@ -395,7 +497,9 @@ nav a.active {
 
 .calculator {
   width: 100%;
-  max-width: 1000px;
+  margin-top: 30px;
+  max-width: 1500px;
+  max-height: 1800px;
   padding: 20px;
   box-sizing: border-box;
   background-color: #f4f4f4;
@@ -406,6 +510,7 @@ nav a.active {
 .formula-selector,
 .input-group {
   margin-bottom: 20px;
+    font-size: 1.2em;
 }
 
 .formula-selector select {
@@ -416,10 +521,11 @@ nav a.active {
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
-  font-size: 16px;
+  font-size: 1.0em;
 }
 
 .input-group label {
+  font-size: 1.2em;
   display: block;
   margin-bottom: 5px;
 }
@@ -434,6 +540,7 @@ nav a.active {
 
 button {
   width: 100%;
+  font-size: 16px;
   padding: 10px;
   background-color: #A3A9A9;
   color: #333;
@@ -454,11 +561,13 @@ h3 {
 
 .formula-header {
   font-weight: bold;
-  font-size: 1.2em;
+  font-size: 1.7em;
+  margin-top: 30px;
 }
 
 .formula-description {
-  font-size: 0.9em;
+  margin-top: 20px;
+  font-size: 1.4em;
   color: #555;
 }
 
@@ -520,6 +629,47 @@ footer {
   margin-right: 15px;
 }
 
+.search-container {
+  display: flex; /* Використовуємо flex для правильного вирівнювання */
+  align-items: center; /* Вирівнюємо по центру вертикально */
+  margin-left: -7px;
+  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
+  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
+  position: relative; /* Позиціювання для suggestions */
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
+
 .modal {
   position: fixed;
   top: 0;
@@ -553,9 +703,33 @@ footer {
 }
 
 @media (max-width: 576px) {
+  header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .logo {
+    margin-bottom: 10px;
+  }
+
   nav {
     flex-direction: column;
     gap: 10px;
+    margin-right: 0;
+  }
+
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+    .footer-content {
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start (left) */
+  }
+  .footer-right {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start; /* Align items to the start (left) */
   }
 }
 </style>

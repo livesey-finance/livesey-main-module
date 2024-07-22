@@ -21,7 +21,10 @@
       </thead>
       <tbody>
         <tr v-for="row in sortedData" :key="row.code">
-          <td v-for="header in relevantHeaders" :key="header.key">{{ row[header.key] }}</td>
+          <td v-if="showNameField">
+            <a @click.prevent="goToCryptoDetail(row.code)">{{ row.name }}</a>
+          </td>
+          <td v-for="header in relevantHeaders.slice(showNameField ? 1 : 0)" :key="header.key">{{ row[header.key] }}</td>
         </tr>
       </tbody>
     </table>
@@ -54,7 +57,10 @@ export default {
   computed: {
     relevantHeaders() {
       return this.headers.filter(header => {
-        return header.key === 'code' || this.additionalFields.includes(header.label);
+        if (header.key === 'name') {
+          return !this.isTopTen;
+        }
+        return this.additionalFields.includes(header.label);
       });
     },
     sortedData() {
@@ -66,6 +72,9 @@ export default {
         return 0;
       });
     },
+    showNameField() {
+      return this.relevantHeaders.some(header => header.key === 'name');
+    },
   },
   methods: {
     sort(key) {
@@ -75,6 +84,12 @@ export default {
         this.sortedKey = key;
         this.sortedDirection = 'asc';
       }
+    },
+    goToStockDetail(stockCode) {
+      this.$router.push(`/shares/${stockCode}`);
+    },
+    goToCryptoDetail(cryptoCode) {
+      this.$router.push(`/crypto/${cryptoCode}`);
     },
   },
 };

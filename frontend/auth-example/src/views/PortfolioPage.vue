@@ -2,6 +2,15 @@
   <div class="portfolio-container" @contextmenu="openConsole">
     <header>
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <div class="search-container">
+        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <ul v-if="searchQuery.length > 0" class="suggestions">
+          <li v-if="suggestions.length === 0">no matchings were found</li>
+          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+            {{ item.name }} ({{ item.code }})
+          </li>
+        </ul>
+      </div>
       <nav>
         <a href="/">Home</a>
         <a href="/shares">Shares</a>
@@ -9,8 +18,15 @@
         <a href="/portfolio" class="active">Portfolio</a>
         <a href="/calculator">Calculator</a>
         <a href="/about">About</a>
-        <a @click="openLogin">Sign In</a>
-        <a @click="openSignup">Sign Up</a>
+        <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
+        <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
+        <div v-if="isLoggedIn" class="user-profile">
+          <img :src="userIcon" alt="User Icon" @click="toggleProfileMenu" />
+          <div v-if="showProfileMenu" class="profile-menu">
+            <a @click="viewProfile">Profile</a>
+            <a @click="logout">Log Out</a>
+          </div>
+        </div>
       </nav>
     </header>
     <div class="content">
@@ -20,7 +36,7 @@
       <div class="info-container">
         <h2>Your portfolio:</h2>
         <p class="yields-title">
-          Yields, in 
+          Yields, in
           <span @click="toggleCurrencyList" class="currency">{{ currency }}</span>
           <ul v-show="showCurrencyList" class="currency-list">
             <li v-for="curr in currencies" :key="curr" @click="selectCurrency(curr)">{{ curr }}</li>
@@ -33,7 +49,7 @@
           </div>
         </div>
         <div class="yield-total">
-        <p>Total price: <span class="yield-value">{{ totalPrice }}</span> <span class="yield-value">{{ currency }}</span></p>
+          <p>Total price: <span class="yield-value">{{ totalPrice }}</span> <span class="yield-value">{{ currency }}</span></p>
         </div>
       </div>
     </div>
@@ -60,7 +76,7 @@
 
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
     </div>
 
     <!-- Signup Modal -->
@@ -72,6 +88,7 @@
 
 <script>
 import Chart from 'chart.js/auto';
+import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
@@ -87,14 +104,14 @@ export default {
       showCurrencyList: false,
       currencies: ['USD', 'UAH', 'PLN', 'EUR'],
       yields: {
-          'Expected annual profitability:': '5%',
-          'Sharpe ratio:': '1.5',
-          'Sortino ratio:': '1.8',
-          'Inflation for the year:': '2%',
-          'Actual yield [%]:': '6%',
-          'Actual yield [USD]:': '600',
-          'Fixed price maximum [last year]:': '1000',
-          'Fixed price minimum [last year]:': '800',
+        'Expected annual profitability:': '5%',
+        'Sharpe ratio:': '1.5',
+        'Sortino ratio:': '1.8',
+        'Inflation for the year:': '2%',
+        'Actual yield [%]:': '6%',
+        'Actual yield [USD]:': '600',
+        'Fixed price maximum [last year]:': '1000',
+        'Fixed price minimum [last year]:': '800',
       },
       totalPrice: '2000',
       chart: null,
@@ -107,7 +124,12 @@ export default {
         }]
       },
       showLogin: false,
-      showSignup: false
+      showSignup: false,
+      isLoggedIn: false,
+      showProfileMenu: false,
+      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
+      searchQuery: '',
+      suggestions: []
     };
   },
   methods: {
@@ -135,7 +157,7 @@ export default {
       this.showCurrencyList = false;
     },
     openConsole(event) {
-        console.log("Console opened on right-click", event);
+      console.log("Console opened on right-click", event);
     },
     handleChartClick(event) {
       const activePoints = this.chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
@@ -173,6 +195,25 @@ export default {
       });
       console.log('Chart initialized:', this.chart);
     },
+    async fetchSuggestions() {
+      try {
+        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        this.suggestions = response.data || [];
+        if (this.suggestions.length === 0) {
+          this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+      }
+    },
+    selectSuggestion(item) {
+      if (item.code) {
+        this.$router.push(`/shares/${item.code}`);
+      }
+      this.suggestions = [];
+      this.searchQuery = '';
+    },
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
@@ -184,6 +225,22 @@ export default {
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+    },
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+    },
+    viewProfile() {
+      // Navigate to profile page or show profile details
+      console.log('Viewing profile');
+    },
+    logout() {
+      this.isLoggedIn = false;
+      this.showProfileMenu = false;
+      // Perform any additional logout operations, like clearing tokens
+    },
+    login() {
+      this.isLoggedIn = true;
+      this.showLogin = false;
     }
   },
   mounted() {
@@ -200,6 +257,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 * {
@@ -257,6 +315,40 @@ nav a.active {
   color: #fff;
   transition: 0.2s;
 }
+
+.user-profile {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-profile img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  color: #333;
+  text-decoration: none;
+}
+
+.profile-menu a:hover {
+  background-color: #f6f4f0;
+}
+
 .content {
   display: flex;
   justify-content: center;
@@ -280,6 +372,47 @@ nav a.active {
   color: #4f4f4f;
   font-size: 30px;
 }
+
+.search-container {
+  display: flex; /* Використовуємо flex для правильного вирівнювання */
+  align-items: center; /* Вирівнюємо по центру вертикально */
+  margin-left: 20px;
+  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
+  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
+  position: relative; /* Позиціювання для suggestions */
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
 .yields-title {
   display: flex;
   align-items: center;
@@ -459,11 +592,24 @@ footer {
 }
 
 @media (max-width: 480px) {
-  .logo {
-    height: 40px;
+    header {
+    flex-direction: column;
+    align-items: center;
   }
+
+  .logo {
+    margin-bottom: 10px;
+  }
+
   nav {
-    font-size: 16px;
+    flex-direction: column;
+    gap: 10px;
+    margin-right: 0;
+  }
+
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 10px;
   }
   .info-container {
     font-size: 20px;

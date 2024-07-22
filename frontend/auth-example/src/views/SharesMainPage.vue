@@ -2,6 +2,15 @@
   <div class="shares-page" @contextmenu="openConsole">
     <header>
       <img :src="logoSrc" alt="Logo" class="logo" />
+      <div class="search-container">
+        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <ul v-if="searchQuery.length > 0" class="suggestions">
+          <li v-if="suggestions.length === 0">no matchings were found</li>
+          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+            {{ item.name }} ({{ item.code }})
+          </li>
+        </ul>
+      </div>
       <nav>
         <a href="/">Home</a>
         <a href="#" class="active">Shares</a>
@@ -81,8 +90,8 @@
   </div>
 </template>
 
-
 <script>
+import axios from 'axios';
 import SharesTable from './SharesTable.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
@@ -106,7 +115,9 @@ export default {
       gainers: [],
       losers: [],
       currentPage: 1,
-      itemsPerPage: 25
+      itemsPerPage: 25,
+      searchQuery: '',
+      suggestions: []
     };
   },
   computed: {
@@ -201,6 +212,25 @@ export default {
         this.losers = [];
       }
     },
+    async fetchSuggestions() {
+      try {
+        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        this.suggestions = response.data || [];
+        if (this.suggestions.length === 0) {
+          this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+      }
+    },
+    selectSuggestion(item) {
+      if (item.code) {
+        this.$router.push(`/shares/${item.code}`);
+      }
+      this.suggestions = [];
+      this.searchQuery = '';
+    },
     changeSection(section) {
       this.activeSection = section;
       this.currentPage = 1; // Reset to the first page when changing sections
@@ -225,6 +255,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .shares-page {
@@ -407,6 +438,46 @@ nav a.active {
   gap: 10px;
 }
 
+.search-container {
+  display: flex; /* Використовуємо flex для правильного вирівнювання */
+  align-items: center; /* Вирівнюємо по центру вертикально */
+  margin-left: 20px;
+  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
+  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
+  position: relative; /* Позиціювання для suggestions */
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
 .side-category button {
   padding: 10px;
   cursor: pointer;
@@ -535,9 +606,24 @@ footer {
 }
 
 @media (max-width: 576px) {
+    header {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .logo {
+    margin-bottom: 10px;
+  }
+
   nav {
     flex-direction: column;
     gap: 10px;
+    margin-right: 0;
+  }
+
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 10px;
   }
 
   .switch-container {
@@ -546,6 +632,16 @@ footer {
 
   .header-with-buttons h1 {
     text-align: center;
+  }
+
+    .footer-content {
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start (left) */
+  }
+  .footer-right {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start; /* Align items to the start (left) */
   }
 }
 .profile-container {

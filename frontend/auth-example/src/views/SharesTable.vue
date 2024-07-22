@@ -21,10 +21,10 @@
       </thead>
       <tbody>
         <tr v-for="row in sortedData" :key="row.code">
-          <td>
+          <td v-if="showNameField">
             <a @click.prevent="goToStockDetail(row.code)">{{ row.name }}</a>
           </td>
-          <td v-for="header in relevantHeaders.slice(1)" :key="header.key">{{ row[header.key] }}</td>
+          <td v-for="header in relevantHeaders.slice(showNameField ? 1 : 0)" :key="header.key">{{ row[header.key] }}</td>
         </tr>
       </tbody>
     </table>
@@ -44,26 +44,29 @@ export default {
       sortedDirection: 'asc',
       headers: [
         { label: 'Name', key: 'name', sortable: false },
-        { label: 'Code', key: 'code', sortable: !this.isTopTen },
-        { label: 'Last', key: 'last', sortable: !this.isTopTen },
+        { label: 'Code', key: 'code', sortable: true },
+        { label: 'Last', key: 'last', sortable: true },
         { label: 'High', key: 'high', sortable: false },
         { label: 'Low', key: 'low', sortable: false },
-        { label: 'Change', key: 'change', sortable: !this.isTopTen },
-        { label: 'Change%', key: 'changePercent', sortable: !this.isTopTen },
+        { label: 'Change', key: 'change', sortable: true },
+        { label: 'Change%', key: 'changePercent', sortable: true },
         { label: 'Volume', key: 'volume', sortable: false },
         { label: 'Time', key: 'time', sortable: false },
         { label: 'Market Cap', key: 'marketCap', sortable: false },
         { label: 'Revenue', key: 'revenue', sortable: false },
-        { label: 'P/E Ratio', key: 'peRatio', sortable: !this.isTopTen },
-        { label: 'EPS', key: 'eps', sortable: !this.isTopTen },
-        { label: 'Beta', key: 'beta', sortable: !this.isTopTen },
+        { label: 'P/E Ratio', key: 'peRatio', sortable: true },
+        { label: 'EPS', key: 'eps', sortable: true },
+        { label: 'Beta', key: 'beta', sortable: true },
       ],
     };
   },
   computed: {
     relevantHeaders() {
       return this.headers.filter(header => {
-        return header.key === 'name' || this.additionalFields.includes(header.label);
+        if (header.key === 'name') {
+          return !this.isTopTen;
+        }
+        return this.additionalFields.includes(header.label);
       });
     },
     sortedData() {
@@ -74,6 +77,9 @@ export default {
         if (a[this.sortedKey] > b[this.sortedKey]) return this.sortedDirection === 'asc' ? 1 : -1;
         return 0;
       });
+    },
+    showNameField() {
+      return this.relevantHeaders.some(header => header.key === 'name');
     },
   },
   methods: {
@@ -91,6 +97,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 .shares-table {

@@ -1,7 +1,16 @@
 <template>
-  <div class="shares-page">
+  <div class="shares-page" @contextmenu="openConsole">
     <header>
       <img :src="logoSrc" alt="Logo" class="logo" />
+      <div class="search-container">
+        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <ul v-if="searchQuery.length > 0" class="suggestions">
+          <li v-if="suggestions.length === 0">no matchings were found</li>
+          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+            {{ item.name }} ({{ item.code }})
+          </li>
+        </ul>
+      </div>
       <nav>
         <a href="/">Home</a>
         <a href="/shares" class="active">Shares</a>
@@ -9,8 +18,15 @@
         <a href="/portfolio">Portfolio</a>
         <a href="/calculator">Calculator</a>
         <a href="/about">About</a>
-        <a @click="openLogin">Sign In</a>
-        <a @click="openSignup">Sign Up</a>
+        <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
+        <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
+        <div v-if="isLoggedIn" class="user-profile">
+          <img :src="userIcon" alt="User Icon" @click="toggleProfileMenu" />
+          <div v-if="showProfileMenu" class="profile-menu">
+            <a @click="viewProfile">Profile</a>
+            <a @click="logout">Log Out</a>
+          </div>
+        </div>
       </nav>
     </header>
     <div class="content">
@@ -159,7 +175,7 @@
     </footer>
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
     </div>
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
@@ -189,17 +205,31 @@ export default {
       companyCode: 'unknown',
       showLogin: false,
       showSignup: false,
+      isLoggedIn: false,
+      showProfileMenu: false,
+      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
       generalMetrics: [],
       ratios: [],
       networkMetrics: [],
       socialMetrics: [],
       liquidityMetrics: [],
-      otherMetrics: []
+      otherMetrics: [],
+      searchQuery: '',
+      suggestions: []
     };
   },
   methods: {
     togglePortfolio() {
+      if (!this.isLoggedIn) {
+        alert('To add this to portfolio, you have to be logged in or registered');
+        return;
+      }
       this.isInPortfolio = !this.isInPortfolio;
+      if (this.isInPortfolio) {
+        console.log('Added to portfolio');
+      } else {
+        console.log('Removed from portfolio');
+      }
     },
     openLogin() {
       this.showLogin = true;
@@ -212,6 +242,22 @@ export default {
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+    },
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+    },
+    viewProfile() {
+      // Navigate to profile page or show profile details
+      console.log('Viewing profile');
+    },
+    logout() {
+      this.isLoggedIn = false;
+      this.showProfileMenu = false;
+      // Perform any additional logout operations, like clearing tokens
+    },
+    login() {
+      this.isLoggedIn = true;
+      this.showLogin = false;
     },
     importLogo(src) {
       try {
@@ -291,6 +337,25 @@ export default {
         ];
       }
     },
+    async fetchSuggestions() {
+      try {
+        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        this.suggestions = response.data || [];
+        if (this.suggestions.length === 0) {
+          this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+      }
+    },
+    selectSuggestion(item) {
+      if (item.code) {
+        this.$router.push(`/shares/${item.code}`);
+      }
+      this.suggestions = [];
+      this.searchQuery = '';
+    },
     getEstimationClass(estimation) {
       switch (estimation) {
         case 'good':
@@ -302,6 +367,9 @@ export default {
         default:
           return 'not-estimated';
       }
+    },
+    openConsole(event) {
+      console.log("Console opened on right-click", event);
     }
   },
   created() {
@@ -311,6 +379,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 * {
@@ -375,6 +444,39 @@ nav a.active {
   transition: 0.2s;
 }
 
+.user-profile {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-profile img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  color: #333;
+  text-decoration: none;
+}
+
+.profile-menu a:hover {
+  background-color: #f6f4f0;
+}
+
 .content {
   flex: 1;
   display: flex;
@@ -424,6 +526,47 @@ nav a.active {
 .portfolio-btn.remove-btn:hover {
   background-color: #e53935;
 }
+
+.search-container {
+  display: flex; /* Використовуємо flex для правильного вирівнювання */
+  align-items: center; /* Вирівнюємо по центру вертикально */
+  margin-left: 20px;
+  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
+  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
+  position: relative; /* Позиціювання для suggestions */
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
 
 .tabs {
   display: flex;
@@ -638,15 +781,24 @@ h2 {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-  header {
+    header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .logo {
+    margin-bottom: 10px;
   }
 
   nav {
     flex-direction: column;
     gap: 10px;
     margin-right: 0;
+  }
+
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 10px;
   }
 
   .company-info {
@@ -671,13 +823,14 @@ h2 {
     align-items: center;
   }
 
-  .footer-left {
-    align-items: center;
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start (left) */
   }
-
   .footer-right {
     flex-direction: column;
-    align-items: center;
+    gap: 10px;
+    align-items: flex-start; /* Align items to the start (left) */
   }
 }
 </style>

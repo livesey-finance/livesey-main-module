@@ -1,17 +1,33 @@
 <template>
-  <div class="shares-page">
+  <div class="shares-page" @contextmenu="openConsole">
     <header>
       <img :src="logoSrc" alt="Logo" class="logo" />
+      <div class="search-container">
+        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <ul v-if="searchQuery.length > 0" class="suggestions">
+          <li v-if="suggestions.length === 0">no matchings were found</li>
+          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+            {{ item.name }} ({{ item.code }})
+          </li>
+        </ul>
+      </div>
       <nav>
-  <a href="/">Home</a>
-  <a href="/shares" class="active">Shares</a>
-  <a href="/crypto">Crypto</a>
-  <a href="/portfolio">Portfolio</a>
-  <a href="/calculator">Calculator</a>
-  <a href="/about">About</a>
-  <a @click="openLogin">Sign In</a>
-  <a @click="openSignup">Sign Up</a>
-</nav>
+        <a href="/">Home</a>
+        <a href="/shares" class="active">Shares</a>
+        <a href="/crypto">Crypto</a>
+        <a href="/portfolio">Portfolio</a>
+        <a href="/calculator">Calculator</a>
+        <a href="/about">About</a>
+        <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
+        <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
+        <div v-if="isLoggedIn" class="user-profile">
+          <img :src="userIcon" alt="User Icon" @click="toggleProfileMenu" />
+          <div v-if="showProfileMenu" class="profile-menu">
+            <a @click="viewProfile">Profile</a>
+            <a @click="logout">Log Out</a>
+          </div>
+        </div>
+      </nav>
     </header>
     <div class="content">
       <div class="company-info">
@@ -26,26 +42,48 @@
       </div>
       <div class="ratios-container">
         <div class="tabs">
-          <button @click="activeTab = 'debt'" :class="{ active: activeTab === 'debt' }">Debt ratios</button>
-          <button @click="activeTab = 'efficiency'" :class="{ active: activeTab === 'efficiency' }">Efficiency ratios</button>
-          <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity ratios</button>
-          <button @click="activeTab = 'valuation'" :class="{ active: activeTab === 'valuation' }">Valuation ratios</button>
-          <button @click="activeTab = 'gearing'" :class="{ active: activeTab === 'gearing' }">Gearing ratios</button>
-          <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other ratios</button>
+          <button @click="activeTab = 'general'" :class="{ active: activeTab === 'general' }">General Metrics</button>
+          <button @click="activeTab = 'ratios'" :class="{ active: activeTab === 'ratios' }">Ratios & Analytics</button>
+          <button @click="activeTab = 'network'" :class="{ active: activeTab === 'network' }">Network Metrics</button>
+          <button @click="activeTab = 'social'" :class="{ active: activeTab === 'social' }">Social Activity</button>
+          <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity Metrics</button>
+          <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other Metrics</button>
         </div>
         <div class="ratios-content">
-          <div v-if="activeTab === 'debt'" class="ratios">
+          <div v-if="activeTab === 'general'" class="ratios">
+            <table class="ratios-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="generalMetrics.length === 0">
+                  <td colspan="2">no matchings were found</td>
+                </tr>
+                <tr v-for="metric in generalMetrics" :key="metric.name">
+                  <td>{{ metric.name }}</td>
+                  <td>{{ metric.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="activeTab === 'ratios'" class="ratios">
             <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
                   <th>Value</th>
-                  <th>Value estimation</th>
-                  <th>Normal value</th>
+                  <th>Estimation</th>
+                  <th>Normal Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ratio in debtRatios" :key="ratio.name">
+                <tr v-if="ratios.length === 0">
+                  <td colspan="4">no matchings were found</td>
+                </tr>
+                <tr v-for="ratio in ratios" :key="ratio.name">
                   <td>{{ ratio.name }}</td>
                   <td>{{ ratio.value }}</td>
                   <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
@@ -54,22 +92,40 @@
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'efficiency'" class="ratios">
+          <div v-if="activeTab === 'network'" class="ratios">
             <table class="ratios-table">
               <thead>
                 <tr>
-                  <th>Ratio</th>
+                  <th>Metric</th>
                   <th>Value</th>
-                  <th>Value estimation</th>
-                  <th>Normal value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ratio in efficiencyRatios" :key="ratio.name">
-                  <td>{{ ratio.name }}</td>
-                  <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
-                  <td>{{ ratio.normalValue }}</td>
+                <tr v-if="networkMetrics.length === 0">
+                  <td colspan="2">no matchings were found</td>
+                </tr>
+                <tr v-for="metric in networkMetrics" :key="metric.name">
+                  <td>{{ metric.name }}</td>
+                  <td>{{ metric.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="activeTab === 'social'" class="ratios">
+            <table class="ratios-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="socialMetrics.length === 0">
+                  <td colspan="2">no matchings were found</td>
+                </tr>
+                <tr v-for="metric in socialMetrics" :key="metric.name">
+                  <td>{{ metric.name }}</td>
+                  <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
@@ -78,58 +134,17 @@
             <table class="ratios-table">
               <thead>
                 <tr>
-                  <th>Ratio</th>
+                  <th>Metric</th>
                   <th>Value</th>
-                  <th>Value estimation</th>
-                  <th>Normal value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ratio in liquidityRatios" :key="ratio.name">
-                  <td>{{ ratio.name }}</td>
-                  <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
-                  <td>{{ ratio.normalValue }}</td>
+                <tr v-if="liquidityMetrics.length === 0">
+                  <td colspan="2">no matchings were found</td>
                 </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-if="activeTab === 'valuation'" class="ratios">
-            <table class="ratios-table">
-              <thead>
-                <tr>
-                  <th>Ratio</th>
-                  <th>Value</th>
-                  <th>Value estimation</th>
-                  <th>Normal value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="ratio in valuationRatios" :key="ratio.name">
-                  <td>{{ ratio.name }}</td>
-                  <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
-                  <td>{{ ratio.normalValue }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-if="activeTab === 'gearing'" class="ratios">
-            <table class="ratios-table">
-              <thead>
-                <tr>
-                  <th>Ratio</th>
-                  <th>Value</th>
-                  <th>Value estimation</th>
-                  <th>Normal value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="ratio in gearingRatios" :key="ratio.name">
-                  <td>{{ ratio.name }}</td>
-                  <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
-                  <td>{{ ratio.normalValue }}</td>
+                <tr v-for="metric in liquidityMetrics" :key="metric.name">
+                  <td>{{ metric.name }}</td>
+                  <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
@@ -138,18 +153,17 @@
             <table class="ratios-table">
               <thead>
                 <tr>
-                  <th>Ratio</th>
+                  <th>Metric</th>
                   <th>Value</th>
-                  <th>Value estimation</th>
-                  <th>Normal value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ratio in otherRatios" :key="ratio.name">
-                  <td>{{ ratio.name }}</td>
-                  <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
-                  <td>{{ ratio.normalValue }}</td>
+                <tr v-if="otherMetrics.length === 0">
+                  <td colspan="2">no matchings were found</td>
+                </tr>
+                <tr v-for="metric in otherMetrics" :key="metric.name">
+                  <td>{{ metric.name }}</td>
+                  <td>{{ metric.value }}</td>
                 </tr>
               </tbody>
             </table>
@@ -179,9 +193,8 @@
     </footer>
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
     </div>
-
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
       <SignupPage @close="closeModal" @switchToLogin="openLogin" />
@@ -210,17 +223,26 @@ export default {
       companyCode: 'unknown',
       showLogin: false,
       showSignup: false,
+      isLoggedIn: false,
+      showProfileMenu: false,
+      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
       valuationRatios: [],
       debtRatios: [],
       efficiencyRatios: [],
       liquidityRatios: [],
       gearingRatios: [],
       otherRatios: [],
-      placeholders: ['ABC', 'ABC', 'ABC', 'ABC', 'ABC']
+      placeholders: ['ABC', 'ABC', 'ABC', 'ABC', 'ABC'],
+      searchQuery: '',
+      suggestions: []
     };
   },
   methods: {
     togglePortfolio() {
+      if (!this.isLoggedIn) {
+        alert('To add this to portfolio, you have to be logged in or registered');
+        return;
+      }
       this.isInPortfolio = !this.isInPortfolio;
       if (this.isInPortfolio) {
         console.log('Added to portfolio');
@@ -239,6 +261,22 @@ export default {
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+    },
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+    },
+    viewProfile() {
+      // Navigate to profile page or show profile details
+      console.log('Viewing profile');
+    },
+    logout() {
+      this.isLoggedIn = false;
+      this.showProfileMenu = false;
+      // Perform any additional logout operations, like clearing tokens
+    },
+    login() {
+      this.isLoggedIn = true;
+      this.showLogin = false;
     },
     importLogo(src) {
       try {
@@ -367,6 +405,25 @@ export default {
         ];
       }
     },
+    async fetchSuggestions() {
+      try {
+        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        this.suggestions = response.data || [];
+        if (this.suggestions.length === 0) {
+          this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+      }
+    },
+    selectSuggestion(item) {
+      if (item.code) {
+        this.$router.push(`/shares/${item.code}`);
+      }
+      this.suggestions = [];
+      this.searchQuery = '';
+    },
     getEstimationClass(estimation) {
       switch (estimation) {
         case 'good':
@@ -378,6 +435,9 @@ export default {
         default:
           return 'not-estimated';
       }
+    },
+    openConsole(event) {
+      console.log("Console opened on right-click", event);
     }
   },
   created() {
@@ -457,6 +517,39 @@ nav a.active {
   transition: 0.2s;
 }
 
+.user-profile {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-profile img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  color: #333;
+  text-decoration: none;
+}
+
+.profile-menu a:hover {
+  background-color: #f6f4f0;
+}
+
 .content {
   flex: 1;
   display: flex;
@@ -495,8 +588,6 @@ nav a.active {
   margin-left: 80px;
 }
 
-
-
 .portfolio-btn:hover {
   background-color: #45a049;
 }
@@ -508,9 +599,6 @@ nav a.active {
 .portfolio-btn.remove-btn:hover {
   background-color: #e53935;
 }
-
-
-
 
 .tabs {
   display: flex;
@@ -699,6 +787,46 @@ button {
   font-size: 16px;
 }
 
+.search-container {
+  display: flex; /* Використовуємо flex для правильного вирівнювання */
+  align-items: center; /* Вирівнюємо по центру вертикально */
+  margin-left: 20px;
+  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
+  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
+  position: relative; /* Позиціювання для suggestions */
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
 p {
   margin-top: 20px;
   cursor: pointer;
@@ -712,15 +840,24 @@ h2 {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
-  header {
+    header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .logo {
+    margin-bottom: 10px;
   }
 
   nav {
     flex-direction: column;
     gap: 10px;
     margin-right: 0;
+  }
+
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 10px;
   }
 
   .company-info {
@@ -745,13 +882,14 @@ h2 {
     align-items: center;
   }
 
-  .footer-left {
-    align-items: center;
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start; /* Align items to the start (left) */
   }
-
   .footer-right {
     flex-direction: column;
-    align-items: center;
+    gap: 10px;
+    align-items: flex-start; /* Align items to the start (left) */
   }
 }
 </style>
