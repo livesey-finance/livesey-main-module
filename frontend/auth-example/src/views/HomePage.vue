@@ -125,14 +125,15 @@ export default {
       isLoggedIn: false,
       showProfileMenu: false,
       userIcon: require('@/assets/default-user.png'),
-      darkTheme: false
+      darkTheme: false,
+      newsUpdateInterval: null
     };
   },
   methods: {
     async fetchNews(category, setNews) {
-      const apiKey = '071c8f5a-0506-470b-b57a-5903c84d8317';
+      const apiKey = '071c8f5a-0506-470b-b57a-5903c84d8317'; 
       try {
-        const response = await axios.get(`https://content.guardianapis.com/search`, {
+        const response = await axios.get('https://content.guardianapis.com/search', {
           params: {
             q: category,
             'api-key': apiKey,
@@ -143,6 +144,7 @@ export default {
         setNews(response.data.response.results);
       } catch (error) {
         console.error(`Error fetching ${category} news:`, error);
+        setNews([]);
       }
     },
     scrollHorizontally(event) {
@@ -151,7 +153,7 @@ export default {
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        const response = await axios.get('/api/search', { params: { query: this.searchQuery } });
         this.suggestions = response.data || [];
         if (this.suggestions.length === 0) {
           this.suggestions = [{ name: 'No matchings were found', code: '' }];
@@ -209,6 +211,13 @@ export default {
         document.body.classList.remove('dark-theme');
         localStorage.setItem('theme', 'light');
       }
+    },
+    startNewsUpdate() {
+      this.newsUpdateInterval = setInterval(() => {
+        this.fetchNews('cryptocurrency', news => (this.cryptoNews = news));
+        this.fetchNews('stock market', news => (this.stockNews = news));
+        this.fetchNews('politics', news => (this.politicalNews = news));
+      }, 3 * 60 * 60 * 1000); // Update every 3 hours
     }
   },
   mounted() {
@@ -224,10 +233,17 @@ export default {
       this.darkTheme = false;
       document.body.classList.remove('dark-theme');
     }
+
+    // Start the periodic news update
+    this.startNewsUpdate();
+  },
+  beforeUnmount() {
+    if (this.newsUpdateInterval) {
+      clearInterval(this.newsUpdateInterval);
+    }
   }
 };
 </script>
-
 
 <style scoped>
 .home-container {
@@ -586,8 +602,8 @@ input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-.dark-theme footer {
-  background-color: #1e1e1e;
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
 }
 
 button, a{
@@ -597,7 +613,11 @@ button, a{
 .dark-theme button {
   color: #21262d;
 }
-
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
 
 .dark-theme {
   background-color: #0d1117;
@@ -627,10 +647,6 @@ button, a{
 
 .dark-theme .news-item {
   background-color: #21262d;
-  color: #c9d1d9;
-}
-
-.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
   color: #c9d1d9;
 }
 

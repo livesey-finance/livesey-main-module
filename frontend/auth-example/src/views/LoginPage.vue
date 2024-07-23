@@ -1,9 +1,9 @@
 <template>
   <transition name="fade-out" @after-leave="closeModal">
-    <div v-if="isModalOpen" class="auth-container" @contextmenu="openConsole">
+    <div v-if="isModalOpen" :class="['auth-container', { 'dark-theme': darkTheme }]" @contextmenu="openConsole">
       <div class="auth-box">
         <span class="close-button" @click="startCloseModal">&times;</span>
-        <img src="@/assets/logo.png" alt="Logo" class="logo" />
+        <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
         <h2 class="signup-title">Sign In</h2>
         <input type="text" placeholder="Username or Email" v-model="usernameOrEmail" class="auth-input" />
         <div class="password-container">
@@ -21,6 +21,9 @@
 <script>
 export default {
   name: 'LoginPage',
+  props: {
+    darkTheme: Boolean
+  },
   data() {
     return {
       usernameOrEmail: '',
@@ -30,6 +33,9 @@ export default {
     };
   },
   methods: {
+    getLogoSrc() {
+      return this.darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png');
+    },
     login() {
       console.log('Logging in with', this.usernameOrEmail, this.password);
     },
@@ -50,7 +56,6 @@ export default {
       this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
     },
     googleAuth() {
-      // Handle Google authentication logic here
       console.log('Redirecting to Google authentication...');
     }
   },
@@ -89,6 +94,7 @@ export default {
 }
 .logo {
   margin-bottom: 0px;
+  max-width: 350px;
 }
 .auth-input {
   width: 300px;
@@ -172,5 +178,31 @@ h2 {
   cursor: pointer;
   color: #4f4f4f;
   text-align: center;
+}
+
+.dark-theme .logo {
+  max-width: 350px;
+}
+
+.dark-theme .auth-box {
+  background-color: #161b22;
+  color: #c9d1d9;
+}
+.dark-theme .auth-input {
+  background-color: #30363d;
+  color: #c9d1d9;
+}
+.dark-theme button {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+.dark-theme .close-button {
+  color: #ffffff;
+}
+.dark-theme .toggle-password {
+  color: #c9d1d9;
+}
+.dark-theme p {
+  color: #c9d1d9;
 }
 </style>

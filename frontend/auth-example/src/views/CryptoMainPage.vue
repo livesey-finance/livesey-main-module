@@ -1,7 +1,7 @@
 <template>
-  <div class="shares-page" @contextmenu="openConsole">
+  <div :class="['shares-page', { 'dark-theme': darkTheme }]">
     <header>
-      <img :src="logoSrc" alt="Logo" class="logo" />
+      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">
@@ -27,6 +27,11 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
+        <!-- Add Theme Toggle Here -->
+        <label class="theme-toggle">
+          <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
+          <span class="slider"></span>
+        </label>
       </nav>
     </header>
     <div class="content">
@@ -35,7 +40,12 @@
           <h1>Cryptocurrency</h1>
         </div>
         <div v-if="activeSection === 'price'" class="shares-table-container">
-          <CryptoTable :data="paginatedPriceData" :additionalFields="['Name', 'Last', 'Change[1h]', 'Change[24h]', 'Change[7d]', 'Time']" />
+          <!-- Pass darkTheme as a prop to the CryptoTable component -->
+          <CryptoTable
+            :data="paginatedPriceData"
+            :additionalFields="['Name', 'Last', 'Change[1h]', 'Change[24h]', 'Change[7d]', 'Time']"
+            :darkTheme="darkTheme"
+          />
         </div>
         <div class="pagination">
           <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
@@ -50,10 +60,10 @@
           <button @click="activeCategory = 'losers'" :class="{ active: activeCategory === 'losers' }">Losers %</button>
         </div>
         <div v-if="activeCategory === 'gainers'" class="side-content">
-          <CryptoTable :data="gainers" :additionalFields="['Code', 'Last', 'Change[24h]']" :isTopTen="true" />
+          <CryptoTable :data="gainers" :additionalFields="['Code', 'Last', 'Change[24h]']" :isTopTen="true" :darkTheme="darkTheme" />
         </div>
         <div v-else class="side-content">
-          <CryptoTable :data="losers" :additionalFields="['Code', 'Last', 'Change[24h]']" :isTopTen="true" />
+          <CryptoTable :data="losers" :additionalFields="['Code', 'Last', 'Change[24h]']" :isTopTen="true" :darkTheme="darkTheme" />
         </div>
       </div>
     </div>
@@ -90,7 +100,6 @@
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
 import CryptoTable from './CryptoTable.vue';
@@ -121,7 +130,8 @@ export default {
       currentPage: 1,
       itemsPerPage: 25,
       searchQuery: '',
-      suggestions: []
+      suggestions: [],
+      darkTheme: false // Add theme state
     };
   },
   computed: {
@@ -266,17 +276,35 @@ export default {
     },
     openConsole(event) {
       console.log("Console opened on right-click", event);
+    },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
+      }
     }
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
     this.fetchSharesData();
     this.fetchCryptoData(); // Added call to fetch cryptocurrency data
+
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
   }
 };
 </script>
-
-
 
 <style scoped>
 .shares-page {
@@ -685,5 +713,128 @@ footer {
   .header-with-buttons h1 {
     text-align: center;
   }
+}
+
+.theme-toggle {
+  margin-left: 20px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 14px;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: -3px;
+  bottom: -2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Dark Theme Styles */
+.dark-theme {
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+.dark-theme header {
+  background-color: #161b22;
+}
+
+.dark-theme nav a {
+  color: #c9d1d9;
+}
+
+.dark-theme nav a:hover {
+  background-color: #21262d;
+}
+
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .shares-table th,
+.dark-theme .shares-table td {
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+}
+
+.dark-theme .shares-table tbody tr:hover {
+  background-color: #2c3a47;
+}
+
+.dark-theme .profile-menu {
+  background-color: #21262d;
+}
+
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #c9d1d9;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .side-panel {
+  background-color: #21262d;
+  border-color: #21262d;
+}
+
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
+}
+
+.dark-theme footer {
+  background-color: #1e1e1e;
+}
+
+button, a {
+  color: #ffffff;
+}
+
+.dark-theme button {
+  color: #21262d;
 }
 </style>

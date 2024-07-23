@@ -1,9 +1,9 @@
 <template>
   <transition name="fade-out" @after-leave="closeModal">
-    <div v-if="isModalOpen" class="auth-container" @contextmenu="openConsole">
+    <div v-if="isModalOpen" :class="['auth-container', { 'dark-theme': darkTheme }]" @contextmenu="openConsole">
       <div class="auth-box">
         <span class="close-button" @click="startCloseModal">&times;</span>
-        <img src="@/assets/logo.png" alt="Logo" class="logo" />
+        <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
         <h2 class="signup-title">Sign Up</h2>
         <input type="text" placeholder="First name" v-model="firstName" class="auth-input" />
         <input type="text" placeholder="Last name" v-model="lastName" class="auth-input" />
@@ -28,6 +28,9 @@
 <script>
 export default {
   name: 'SignupPage',
+  props: {
+    darkTheme: Boolean
+  },
   data() {
     return {
       firstName: '',
@@ -104,6 +107,7 @@ export default {
 }
 .logo {
   margin-bottom: 0px;
+  max-width: 350px;
 }
 .auth-input {
   width: 300px;
@@ -165,11 +169,9 @@ h2 {
     transform: translateY(0);
   }
 }
-
 .fade-out-leave-active {
   animation: fadeOut 0.5s ease-in-out forwards;
 }
-
 @keyframes fadeOut {
   from {
     opacity: 1;
@@ -180,11 +182,36 @@ h2 {
     transform: translateY(-20px);
   }
 }
-
 .google-auth {
   margin-top: 2px;
   cursor: pointer;
   color: #4f4f4f;
   text-align: center;
+}
+
+.dark-theme .logo {
+  max-width: 350px;
+}
+
+.dark-theme .auth-box {
+  background-color: #161b22;
+  color: #c9d1d9;
+}
+.dark-theme .auth-input {
+  background-color: #30363d;
+  color: #c9d1d9;
+}
+.dark-theme button {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+.dark-theme .close-button {
+  color: #ffffff;
+}
+.dark-theme .toggle-password {
+  color: #c9d1d9;
+}
+.dark-theme p {
+  color: #c9d1d9;
 }
 </style>

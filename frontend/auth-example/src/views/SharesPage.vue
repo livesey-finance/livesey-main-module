@@ -1,7 +1,7 @@
 <template>
   <div class="shares-page" @contextmenu="openConsole">
     <header>
-      <img :src="logoSrc" alt="Logo" class="logo" />
+      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">

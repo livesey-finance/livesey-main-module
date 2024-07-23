@@ -1,5 +1,5 @@
 <template>
-  <div class="shares-table">
+  <div :class="['shares-table', { 'dark-theme': darkTheme }]">
     <table>
       <thead>
         <tr>
@@ -37,6 +37,7 @@ export default {
     data: Array,
     additionalFields: Array,
     isTopTen: Boolean,
+    darkTheme: Boolean, // Accept darkTheme as a prop
   },
   data() {
     return {
@@ -98,7 +99,6 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .shares-table {
   width: 100%;
@@ -127,5 +127,20 @@ export default {
 
 .shares-table th span {
   margin-left: 5px;
+}
+
+/* Dark theme styles */
+.shares-table.dark-theme th,
+.shares-table.dark-theme td {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+}
+
+.shares-table.dark-theme th {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+  border-top: 1px solid #30363d;
 }
 </style>

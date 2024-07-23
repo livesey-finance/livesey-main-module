@@ -1,7 +1,7 @@
 <template>
   <div class="shares-page" @contextmenu="openConsole">
     <header>
-      <img :src="logoSrc" alt="Logo" class="logo" />
+      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">
@@ -18,8 +18,19 @@
         <a href="/portfolio">Portfolio</a>
         <a href="/calculator">Calculator</a>
         <a href="/about">About</a>
-        <a @click="openLogin">Sign In</a>
-        <a @click="openSignup">Sign Up</a>
+        <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
+        <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
+        <div v-if="isLoggedIn" class="user-profile">
+          <img :src="userIcon" alt="User Icon" @click="toggleProfileMenu" />
+          <div v-if="showProfileMenu" class="profile-menu">
+            <a @click="viewProfile">Profile</a>
+            <a @click="logout">Log Out</a>
+          </div>
+        </div>
+        <label class="theme-toggle">
+          <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
+          <span class="slider"></span>
+        </label>
       </nav>
     </header>
     <div class="content">
@@ -32,10 +43,10 @@
           </div>
         </div>
         <div v-if="activeSection === 'price'" class="shares-table-container">
-          <SharesTable :data="paginatedPriceData" :additionalFields="['Name', 'Last', 'High', 'Low', 'Change', 'Change%', 'Volume']" />
+          <SharesTable :data="paginatedPriceData" :additionalFields="['Name', 'Last', 'High', 'Low', 'Change', 'Change%', 'Volume']" :darkTheme="darkTheme"/>
         </div>
         <div v-else class="shares-table-container">
-          <SharesTable :data="paginatedFundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" />
+          <SharesTable :data="paginatedFundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" :darkTheme="darkTheme"/>
         </div>
         <div class="pagination">
           <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
@@ -50,10 +61,10 @@
           <button @click="activeCategory = 'losers'" :class="{ active: activeCategory === 'losers' }">Losers %</button>
         </div>
         <div v-if="activeCategory === 'gainers'" class="side-content">
-          <SharesTable :data="gainers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" />
+          <SharesTable :data="gainers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" :darkTheme="darkTheme" />
         </div>
         <div v-else class="side-content">
-          <SharesTable :data="losers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" />
+          <SharesTable :data="losers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" :darkTheme="darkTheme" />
         </div>
       </div>
     </div>
@@ -117,7 +128,8 @@ export default {
       currentPage: 1,
       itemsPerPage: 25,
       searchQuery: '',
-      suggestions: []
+      suggestions: [],
+      darkTheme: false // Add theme state
     };
   },
   computed: {
@@ -154,6 +166,16 @@ export default {
         return images(`./${src}`);
       } catch (e) {
         return require('@/assets/default.png');
+      }
+    },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('theme', 'light');
       }
     },
     async fetchSharesData() {
@@ -252,10 +274,19 @@ export default {
   created() {
     this.logoSrc = this.importLogo('logo.png');
     this.fetchSharesData();
+
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
   }
 };
 </script>
-
 
 <style scoped>
 .shares-page {
@@ -554,7 +585,6 @@ footer {
   margin-right: 15px;
 }
 
-
 .modal {
   position: fixed;
   top: 0;
@@ -653,5 +683,151 @@ footer {
   border-radius: 50%;
   cursor: pointer;
 }
+.theme-toggle {
+  margin-left: 20px;
+  margin-top: 15px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 14px;
+}
 
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: -3px;
+  bottom: -2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Dark Theme Styles */
+.dark-theme {
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+.dark-theme header {
+  background-color: #161b22;
+}
+
+.dark-theme nav a {
+  color: #c9d1d9;
+}
+
+.dark-theme nav a:hover {
+  background-color: #21262d;
+}
+
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .shares-table tbody tr:hover {
+  background-color: #2c3a47;
+}
+
+.dark-theme .profile-menu {
+  background-color: #21262d;
+}
+
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #c9d1d9;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .side-panel th {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+}
+
+.dark-theme .side-panel {
+  background-color: #21262d;
+  border-color: #21262d;
+  color: #c9d1d9;
+}
+
+
+.dark-theme .content {
+  background-color: #161b22;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-grow: 1;
+  padding: 20px;
+  flex-wrap: wrap; /* Allow flex items to wrap */
+}
+
+.dark-theme h1 {
+  color: #f0F0F0;
+}
+
+.dark-theme h3 {
+  color: #f0F0F0;
+}
+
+.dark-theme .side-panel .td{
+  color: #f0F0F0;
+}
+
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
+}
+
+.dark-theme footer {
+  background-color: #1e1e1e;
+}
+
+button, a {
+  color: #ffffff;
+}
+
+.dark-theme button {
+  color: #21262d;
+}
 </style>

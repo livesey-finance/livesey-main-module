@@ -1,5 +1,5 @@
 <template>
-  <div class="shares-table">
+  <div :class="['shares-table', { 'dark-theme': darkTheme }]">
     <table>
       <thead>
         <tr>
@@ -37,6 +37,7 @@ export default {
     data: Array,
     additionalFields: Array,
     isTopTen: Boolean,
+    darkTheme: Boolean, // Accept darkTheme as a prop
   },
   data() {
     return {
@@ -56,7 +57,7 @@ export default {
   },
   computed: {
     relevantHeaders() {
-      return this.headers.filter(header => {
+      return this.headers.filter((header) => {
         if (header.key === 'name') {
           return !this.isTopTen;
         }
@@ -73,7 +74,7 @@ export default {
       });
     },
     showNameField() {
-      return this.relevantHeaders.some(header => header.key === 'name');
+      return this.relevantHeaders.some((header) => header.key === 'name');
     },
   },
   methods: {
@@ -123,5 +124,25 @@ export default {
 
 .shares-table th span {
   margin-left: 5px;
+}
+
+/* Dark theme styles */
+.shares-table.dark-theme th,
+.shares-table.dark-theme td {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+}
+
+.shares-table.dark-theme th {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+  border-top: 1px solid #30363d;
+}
+
+.shares-table.dark-theme th
+.side-panel.dark-theme th  {
+  background-color: #21262d;
 }
 </style>
