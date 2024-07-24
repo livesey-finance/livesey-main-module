@@ -1,7 +1,7 @@
 <template>
   <div class="portfolio-container" @contextmenu="openConsole">
     <header>
-      <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">
@@ -27,6 +27,10 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
+        <div class="theme-toggle">
+        <input type="checkbox" id="theme-switch" @change="toggleTheme" :checked="darkTheme">
+        <label for="theme-switch" class="slider"></label>
+      </div>
       </nav>
     </header>
     <div class="content">
@@ -99,39 +103,64 @@ export default {
     SignupPage
   },
   data() {
-    return {
-      currency: 'USD',
-      showCurrencyList: false,
-      currencies: ['USD', 'UAH', 'PLN', 'EUR'],
-      yields: {
-        'Expected annual profitability:': '5%',
-        'Sharpe ratio:': '1.5',
-        'Sortino ratio:': '1.8',
-        'Inflation for the year:': '2%',
-        'Actual yield [%]:': '6%',
-        'Actual yield [USD]:': '600',
-        'Fixed price maximum [last year]:': '1000',
-        'Fixed price minimum [last year]:': '800',
-      },
-      totalPrice: '2000',
-      chart: null,
-      portfolioData: {
-        labels: ['NKE', 'BTC', 'AAPL', 'USDT'],
-        datasets: [{
-          data: [18, 20, 30, 18],
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6384'],
-          hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6384']
-        }]
-      },
-      showLogin: false,
-      showSignup: false,
-      isLoggedIn: false,
-      showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
-      searchQuery: '',
-      suggestions: []
-    };
-  },
+  return {
+    currency: 'USD',
+    showCurrencyList: false,
+    currencies: ['USD', 'UAH', 'PLN', 'EUR'],
+    yields: {
+      'Expected annual profitability:': '5%',
+      'Sharpe ratio:': '1.5',
+      'Sortino ratio:': '1.8',
+      'Inflation for the year:': '2%',
+      'Actual yield [%]:': '6%',
+      'Actual yield [USD]:': '600',
+      'Fixed price maximum [last year]:': '1000',
+      'Fixed price minimum [last year]:': '800',
+    },
+    totalPrice: '2000',
+    chart: null,
+    portfolioData: {
+      labels: ['NKE', 'BTC', 'AAPL', 'USDT'],
+      datasets: [{
+        data: [18, 20, 30, 18],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6384'],
+        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6384']
+      }]
+    },
+    lightThemeColors: [
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56',
+      '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56', '#FF6384',
+      '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+      '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+      '#9966FF', '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB',
+      '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56',
+      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+      '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56',
+      '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56', '#FF6384'
+    ],
+    darkThemeColors: [
+      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1'
+    ],
+    showLogin: false,
+    showSignup: false,
+    isLoggedIn: false,
+    showProfileMenu: false,
+    userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
+    searchQuery: '',
+    suggestions: [],
+    darkTheme: false // Add darkTheme state
+  };
+},
   methods: {
     fetchPortfolioData() {
       setTimeout(() => {
@@ -174,7 +203,8 @@ export default {
         this.chart.destroy();
       }
       const ctx = document.getElementById('portfolioChart').getContext('2d');
-      console.log('Chart context:', ctx);
+      const legendColor = this.darkTheme ? '#c9d1d9' : '#000000'; // Use the desired color for the dark theme
+
       this.chart = new Chart(ctx, {
         type: 'doughnut',
         data: this.portfolioData,
@@ -186,14 +216,14 @@ export default {
               labels: {
                 font: {
                   size: 25
-                }
+                },
+                color: legendColor // Set the legend label color dynamically
               }
             }
           },
           onClick: this.handleChartClick
         }
       });
-      console.log('Chart initialized:', this.chart);
     },
     async fetchSuggestions() {
       try {
@@ -241,13 +271,36 @@ export default {
     login() {
       this.isLoggedIn = true;
       this.showLogin = false;
+    },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        localStorage.setItem('theme', 'dark');
+        document.body.classList.add('dark-theme');
+      } else {
+        localStorage.setItem('theme', 'light');
+        document.body.classList.remove('dark-theme');
+      }
+      this.updateChart(); // Update chart when theme changes
     }
   },
   mounted() {
     this.fetchPortfolioData();
     this.updateChart();
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
   },
   watch: {
+    darkTheme() {
+      this.updateChart(); // Update the chart when the theme changes
+    },
     portfolioData: {
       handler() {
         this.updateChart();
@@ -257,7 +310,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 * {
@@ -540,91 +592,134 @@ footer {
   z-index: 1000;
 }
 
-/* Media Queries for Responsive Design */
-@media (max-width: 1200px) {
-  .chart-container {
-    position: relative;
-    min-width: 100%;
-    height: 400px;
-    left: auto;
-    top: auto;
-    margin-bottom: 20px;
-  }
-  .info-container {
-    margin-left: 0;
-    margin-top: 20px;
-    width: 100%;
-  }
+/* Dark Theme Styles */
+
+.dark-theme {
+  background-color: #0d1117;
+  color: #c9d1d9;
 }
 
-@media (max-width: 768px) {
-  header {
-    flex-direction: column;
-    align-items: center;
-  }
-  nav {
-    flex-direction: column;
-    gap: 10px;
-    margin-right: 0;
-    font-size: 18px;
-  }
-  nav a {
-    padding: 5px 10px;
-  }
-  .content {
-    flex-direction: column;
-    align-items: center;
-  }
-  .yields-title, .yields, .yield-total {
-    margin-left: 0;
-    font-size: 24px;
-  }
-  .yield {
-    flex-direction: column;
-    text-align: center;
-  }
-  .yield-key, .yield-value {
-    font-size: 18px;
-  }
-  .yield-total {
-    font-size: 26px;
-  }
+.dark-theme header {
+  background-color: #21252d;
 }
 
-@media (max-width: 480px) {
-    header {
-    flex-direction: column;
-    align-items: center;
-  }
 
-  .logo {
-    margin-bottom: 10px;
-  }
+.dark-theme nav a {
+  color: #c9d1d9;
+}
 
-  nav {
-    flex-direction: column;
-    gap: 10px;
-    margin-right: 0;
-  }
+.dark-theme nav a:hover {
+  background-color: #134B70;
+}
 
-  .search-container {
-    max-width: 100%;
-    margin-bottom: 10px;
-  }
-  .info-container {
-    font-size: 20px;
-  }
-  .yields-title, .yield-key, .yield-value, .yield-total {
-    font-size: 18px;
-  }
-  .footer-content {
-    flex-direction: column;
-    align-items: flex-start; /* Align items to the start (left) */
-  }
-  .footer-right {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start; /* Align items to the start (left) */
-  }
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .content {
+  background-color: #161b22;
+}
+
+.dark-theme footer {
+  background-color: #1e1e1e;
+}
+
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu {
+  background-color: #21262d;
+}
+
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #c9d1d9;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+
+.dark-theme h2 {
+  color: #c9d1d9;
+}
+
+.dark-theme .yields-title, .dark-theme .yield-key, .dark-theme .yield-value, .dark-theme .yield-total {
+  color: #c9d1d9;
+}
+
+.dark-theme .currency-list {
+  background-color: #21262d;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.dark-theme .currency-list li:hover {
+  background-color: #30363d;
+}
+
+.dark-theme .chart-container {
+  background-color: #161b22;
+  color: #c9d1d9;
+}
+
+.theme-toggle {
+  margin-left: 20px;
+  margin-top: 15px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 14px;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: -3px;
+  bottom: -2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
 }
 </style>

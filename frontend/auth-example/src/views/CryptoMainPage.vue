@@ -717,6 +717,7 @@ footer {
 
 .theme-toggle {
   margin-left: 20px;
+  margin-top: 15px;
   position: relative;
   display: inline-block;
   width: 35px;
@@ -768,7 +769,7 @@ input:checked + .slider:before {
 }
 
 .dark-theme header {
-  background-color: #161b22;
+  background-color: #21252d;
 }
 
 .dark-theme nav a {
@@ -776,7 +777,7 @@ input:checked + .slider:before {
 }
 
 .dark-theme nav a:hover {
-  background-color: #21262d;
+  background-color: #134B70;
 }
 
 .dark-theme nav a.active {
@@ -797,6 +798,7 @@ input:checked + .slider:before {
 .dark-theme .profile-menu {
   background-color: #21262d;
 }
+
 
 .dark-theme .search-container input {
   background-color: #161b22;

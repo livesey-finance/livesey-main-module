@@ -27,6 +27,10 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
+        <label class="theme-toggle">
+          <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
+          <span class="slider"></span>
+        </label>
       </nav>
     </header>
     <div class="content">
@@ -59,9 +63,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="generalMetrics.length === 0">
-                  <td colspan="2">no matchings were found</td>
-                </tr>
                 <tr v-for="metric in generalMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
                   <td>{{ metric.value }}</td>
@@ -80,9 +81,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="ratios.length === 0">
-                  <td colspan="4">no matchings were found</td>
-                </tr>
                 <tr v-for="ratio in ratios" :key="ratio.name">
                   <td>{{ ratio.name }}</td>
                   <td>{{ ratio.value }}</td>
@@ -101,9 +99,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="networkMetrics.length === 0">
-                  <td colspan="2">no matchings were found</td>
-                </tr>
                 <tr v-for="metric in networkMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
                   <td>{{ metric.value }}</td>
@@ -120,9 +115,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="socialMetrics.length === 0">
-                  <td colspan="2">no matchings were found</td>
-                </tr>
                 <tr v-for="metric in socialMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
                   <td>{{ metric.value }}</td>
@@ -139,9 +131,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="liquidityMetrics.length === 0">
-                  <td colspan="2">no matchings were found</td>
-                </tr>
                 <tr v-for="metric in liquidityMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
                   <td>{{ metric.value }}</td>
@@ -158,9 +147,6 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="otherMetrics.length === 0">
-                  <td colspan="2">no matchings were found</td>
-                </tr>
                 <tr v-for="metric in otherMetrics" :key="metric.name">
                   <td>{{ metric.name }}</td>
                   <td>{{ metric.value }}</td>
@@ -216,7 +202,7 @@ export default {
   data() {
     return {
       isInPortfolio: false,
-      activeTab: 'valuation',
+      activeTab: 'general',
       logoSrc: null,
       companyLogoSrc: null,
       companyName: 'Unknown',
@@ -226,15 +212,15 @@ export default {
       isLoggedIn: false,
       showProfileMenu: false,
       userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
-      valuationRatios: [],
-      debtRatios: [],
-      efficiencyRatios: [],
-      liquidityRatios: [],
-      gearingRatios: [],
-      otherRatios: [],
-      placeholders: ['ABC', 'ABC', 'ABC', 'ABC', 'ABC'],
+      generalMetrics: [],
+      ratios: [],
+      networkMetrics: [],
+      socialMetrics: [],
+      liquidityMetrics: [],
+      otherMetrics: [],
       searchQuery: '',
-      suggestions: []
+      suggestions: [],
+      darkTheme: false // Add darkTheme state
     };
   },
   methods: {
@@ -300,109 +286,41 @@ export default {
         this.companyLogoSrc = this.importLogo('default.png');
       }
     },
-    async fetchValuationRatios() {
+    async fetchMetrics() {
       try {
-        const response = await axios.get('/api/valuation-ratios');
-        this.valuationRatios = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching valuation ratios:', error);
-        this.valuationRatios = [
-          { name: 'P/E', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Forward P/E', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'PEG', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'P/S', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'P/B', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        const response = await axios.get('/api/crypto-metrics');
+        const data = response.data || {};
+        this.generalMetrics = data.general || [
+          { name: 'Market Cap', value: '500B' },
+          { name: 'Revenue', value: '300B' }
         ];
-      }
-    },
-    async fetchDebtRatios() {
-      try {
-        const response = await axios.get('/api/debt-ratios');
-        this.debtRatios = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching debt ratios:', error);
-        this.debtRatios = [
-          { name: 'Debt to Equity', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Interest Coverage', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        this.ratios = data.ratios || [
+          { name: 'P/E Ratio', value: '25', estimation: 'good', normalValue: '15-25' },
+          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' }
         ];
-      }
-    },
-    async fetchEfficiencyRatios() {
-      try {
-        const response = await axios.get('/api/efficiency-ratios');
-        this.efficiencyRatios = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching efficiency ratios:', error);
-        this.efficiencyRatios = [
-          { name: 'Asset Turnover', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Inventory Turnover', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        this.networkMetrics = data.network || [
+          { name: 'Node Count', value: '1000' },
+          { name: 'Hash Rate', value: '50 TH/s' }
         ];
-      }
-    },
-    async fetchLiquidityRatios() {
-      try {
-        const response = await axios.get('/api/liquidity-ratios');
-        this.liquidityRatios = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching liquidity ratios:', error);
-        this.liquidityRatios = [
-          { name: 'Current Ratio', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Quick Ratio', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        this.socialMetrics = data.social || [
+          { name: 'Twitter Followers', value: '1M' },
+          { name: 'Reddit Subscribers', value: '500K' }
         ];
-      }
-    },
-    async fetchGearingRatios() {
-      try {
-        const response = await axios.get('/api/gearing-ratios');
-        this.gearingRatios = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching gearing ratios:', error);
-        this.gearingRatios = [
-          { name: 'Debt Ratio', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Equity Ratio', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        this.liquidityMetrics = data.liquidity || [
+          { name: 'Current Ratio', value: '2.0' },
+          { name: 'Quick Ratio', value: '1.5' }
         ];
-      }
-    },
-    async fetchOtherRatios() {
-      try {
-        const response = await axios.get('/api/other-ratios');
-        this.otherRatios = response.data.map(ratio => ({
-          name: ratio.name || 'Unknown',
-          value: ratio.value || '00.00',
-          estimation: ratio.estimation || 'not estimated',
-          normalValue: ratio.normalValue || '00.00'
-        }));
-      } catch (error) {
-        console.error('Error fetching other ratios:', error);
-        this.otherRatios = [
-          { name: 'EPS', value: '00.00', estimation: 'not estimated', normalValue: '00.00' },
-          { name: 'Dividend Yield', value: '00.00', estimation: 'not estimated', normalValue: '00.00' }
+        this.otherMetrics = data.other || [
+          { name: 'Employee Count', value: '50K' },
+          { name: 'Office Locations', value: '20' }
         ];
+      } catch (error) {
+        console.error('Error fetching metrics:', error);
+        this.generalMetrics = [
+          { name: 'Market Cap', value: '500B' },
+          { name: 'Revenue', value: '300B' }
+        ];
+        
       }
     },
     async fetchSuggestions() {
@@ -438,17 +356,31 @@ export default {
     },
     openConsole(event) {
       console.log("Console opened on right-click", event);
-    }
+    },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        localStorage.setItem('theme', 'dark');
+        document.body.classList.add('dark-theme');
+      } else {
+        localStorage.setItem('theme', 'light');
+        document.body.classList.remove('dark-theme');
+      }
+    },
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
     this.fetchCompanyDetails();
-    this.fetchValuationRatios();
-    this.fetchDebtRatios();
-    this.fetchEfficiencyRatios();
-    this.fetchLiquidityRatios();
-    this.fetchGearingRatios();
-    this.fetchOtherRatios();
+    this.fetchMetrics();
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
   }
 };
 </script>
@@ -580,7 +512,7 @@ nav a.active {
 }
 
 .portfolio-btn {
-  background-color: #4caf50;
+  background-color: #333;
   color: #fff;
   border: none;
   padding: 15px 5px; /* Reduced padding for smaller button */
@@ -589,15 +521,24 @@ nav a.active {
 }
 
 .portfolio-btn:hover {
-  background-color: #45a049;
+  background-color: #A3A9A9;
+  color: #333;
+  transition: 0.2s;
 }
 
 .portfolio-btn.remove-btn {
-  background-color: #f44336; /* Red color for remove button */
+    background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 15px 5px; /* Reduced padding for smaller button */
+  cursor: pointer;
+  margin-left: 80px;
 }
 
 .portfolio-btn.remove-btn:hover {
-  background-color: #e53935;
+    background-color: #A3A9A9;
+  color: #333;
+  transition: 0.2s;
 }
 
 .tabs {
@@ -701,7 +642,6 @@ footer {
 
 .footer-logo {
   font-size: 24px;
-  font-weight: bold;
   color: #fff;
   text-decoration: none;
 }
@@ -869,10 +809,6 @@ h2 {
     margin-right: 0;
   }
 
-  .portfolio-btn {
-    margin-left: 0;
-  }
-
   .tabs {
     justify-content: center;
   }
@@ -891,5 +827,177 @@ h2 {
     gap: 10px;
     align-items: flex-start; /* Align items to the start (left) */
   }
+}
+
+/* Dark Theme Styles */
+.dark-theme {
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+.dark-theme header {
+  background-color: #21252d;
+}
+
+.dark-theme h1 {
+  color: #c9d1d9;
+}
+
+.dark-theme h2 {
+  color: #c9d1d9;
+}
+
+.dark-theme nav a {
+  color: #c9d1d9;
+}
+
+.dark-theme nav a:hover {
+  background-color: #134B70;
+}
+
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .content {
+  background-color: #161b22;
+}
+
+.dark-theme footer {
+  background-color: #1e1e1e;
+}
+
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu {
+  background-color: #21262d;
+}
+
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #c9d1d9;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .side-panel {
+  background-color: #21262d;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.dark-theme .ratios-table th, .dark-theme .ratios-table td {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+}
+
+.dark-theme .portfolio-btn {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.dark-theme .portfolio-btn.remove-btn {
+  background-color: #f44336;
+}
+
+.dark-theme .portfolio-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 15px 5px; /* Reduced padding for smaller button */
+  cursor: pointer;
+  margin-left: 80px;
+}
+.dark-theme .portfolio-btn:hover {
+  background-color: #333;
+  color: #A3A9A9;
+  transition: 0.2s;
+}
+fff
+.dark-theme .portfolio-btn.remove-btn {
+    background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 15px 5px; 
+  cursor: pointer;
+  margin-left: 80px;
+}
+
+.dark-theme.portfolio-btn.remove-btn:hover {
+  background-color: #333;
+  color: #A3A9A9;
+  transition: 0.2s;
+}
+
+
+
+
+
+
+.dark-theme button {
+  color: #21262d;
+}
+
+.theme-toggle {
+  margin-left: 20px;
+  margin-top: 15px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 14px;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: -3px;
+  bottom: -2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
 }
 </style>

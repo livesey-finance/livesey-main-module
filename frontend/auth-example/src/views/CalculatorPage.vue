@@ -1,7 +1,7 @@
 <template>
-  <div class="calculator-container" @contextmenu="openConsole">
+  <div :class="['calculator-container', { 'dark-theme': darkTheme }]" @contextmenu="openConsole">
     <header>
-      <img src="@/assets/logo.png" alt="Logo" class="logo" />
+      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">
@@ -90,7 +90,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import {
   calculateCurrentRatio,
@@ -129,6 +128,7 @@ export default {
   data() {
     return {
       formulas: [
+        { id: 'default', name: '', inputs: [] },
         { id: 'debtEquity', name: 'Debt to Equity Ratio', inputs: ['totalDebt', 'equity'] },
         { id: 'ltDebtEquity', name: 'Long Term Debt to Equity Ratio', inputs: ['longTermDebt', 'equity'] },
         { id: 'eps', name: 'Earnings Per Share', inputs: ['netIncome', 'preferredDividends', 'sharesOutstanding'] },
@@ -153,7 +153,7 @@ export default {
         { id: 'evCFO', name: 'EV/CFO Ratio', inputs: ['enterpriseValue', 'cashFlowFromOperations'] },
         { id: 'evFCFF', name: 'EV/FCFF Ratio', inputs: ['enterpriseValue', 'freeCashFlowToFirm'] },
       ],
-      selectedFormula: 'debtEquity',
+      selectedFormula: 'default',
       inputs: {
         totalDebt: { id: 'totalDebt', label: 'Total Debt', value: null, error: false },
         equity: { id: 'equity', label: 'Equity', value: null, error: false },
@@ -195,6 +195,7 @@ export default {
       showProfileMenu: false,
       userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
       searchQuery: '',
+      darkTheme: false,
       suggestions: []
     };
   },
@@ -341,6 +342,8 @@ export default {
     },
     getFormulaDescription(formulaId) {
       switch (formulaId) {
+        case 'default':
+          return '';
         case 'debtEquity':
           return 'The debt-to-equity (D/E) ratio assesses a company\'s financial leverage by dividing its total liabilities by shareholder equity. This crucial metric in corporate finance indicates the extent to which a company relies on debt to fund its operations, as opposed to using its own resources.';
         case 'ltDebtEquity':
@@ -391,16 +394,32 @@ export default {
           return 'Description not available';
       }
     },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        localStorage.setItem('theme', 'dark');
+        document.body.classList.add('dark-theme');
+      } else {
+        localStorage.setItem('theme', 'light');
+        document.body.classList.remove('dark-theme');
+      }
+    },
     openConsole(event) {
       console.log("Console opened on right-click", event);
     }
   },
   mounted() {
-    this.updateInputs();
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
   },
 };
 </script>
-
 
 <style scoped>
 .calculator-container {
@@ -514,7 +533,7 @@ h2 {
 .formula-selector,
 .input-group {
   margin-bottom: 20px;
-    font-size: 1.2em;
+  font-size: 1.2em;
 }
 
 .formula-selector select {
@@ -673,7 +692,6 @@ footer {
   background-color: #f0f0f0;
 }
 
-
 .modal {
   position: fixed;
   top: 0;
@@ -737,11 +755,108 @@ footer {
   }
 }
 
+/* Dark Theme Styles */
+.dark-theme {
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+.dark-theme header {
+  background-color: #21252d;
+}
+
+.dark-theme nav a {
+  color: #c9d1d9;
+}
+
+.dark-theme nav a:hover {
+  background-color: #134B70;
+}
+
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .content {
+  background-color: #161b22;
+}
+
+.dark-theme .calculator {
+  background-color: #21252d;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); /* Light shadow for dark background */
+  border-radius: 8px;
+}
+
+
+.dark-theme footer {
+  background-color: #1e1e1e;
+}
+
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu {
+  background-color: #21262d;
+}
+
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #c9d1d9;
+}
+
+.dark-theme .label{
+  color: #c9d1d9;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .yields-title, .dark-theme .yield-key, .dark-theme .yield-value, .dark-theme .yield-total {
+  color: #c9d1d9;
+}
+
+.dark-theme .currency-list {
+  background-color: #21262d;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.dark-theme .formula-description {
+  margin-top: 20px;
+  font-size: 1.4em;
+  color: #c9d1d9;
+}
+
+.dark-theme .currency-list li:hover {
+  background-color: #30363d;
+}
+
+.dark-theme .chart-container {
+  background-color: #161b22;
+  color: #c9d1d9;
+}
+
+/* Theme Toggle Styles */
 .theme-toggle {
+  margin-left: 20px;
+  margin-top: 15px;
   position: relative;
   display: inline-block;
-  width: 60px;
-  height: 34px;
+  width: 35px;
+  height: 14px;
 }
 
 .theme-toggle input {
@@ -750,7 +865,7 @@ footer {
   height: 0;
 }
 
-.theme-toggle .slider {
+.slider {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -758,33 +873,27 @@ footer {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  transition: .4s;
-}
-
-.theme-toggle .slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
-
-.slider.round {
+  transition: 0.4s;
   border-radius: 34px;
 }
 
-.slider.round:before {
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: -3px;
+  bottom: -2px;
+  background-color: white;
+  transition: 0.4s;
   border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
 }
 </style>

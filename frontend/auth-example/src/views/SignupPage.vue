@@ -214,4 +214,7 @@ h2 {
 .dark-theme p {
   color: #c9d1d9;
 }
+.dark-theme .signup-title {
+  color: #c9d1d9;
+}
 </style>

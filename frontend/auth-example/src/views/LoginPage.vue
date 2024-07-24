@@ -182,6 +182,7 @@ h2 {
 
 .dark-theme .logo {
   max-width: 350px;
+  
 }
 
 .dark-theme .auth-box {
@@ -203,6 +204,9 @@ h2 {
   color: #c9d1d9;
 }
 .dark-theme p {
+  color: #c9d1d9;
+}
+.dark-theme .signup-title {
   color: #c9d1d9;
 }
 </style>

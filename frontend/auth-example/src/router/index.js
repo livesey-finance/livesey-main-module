@@ -8,6 +8,7 @@ import CryptoPage from '@/views/CryptoPage.vue';
 import CryptoMainPage from '@/views/CryptoMainPage.vue';
 import CalculatorPage from '@/views/CalculatorPage.vue';
 import HomePage from '@/views/HomePage.vue';
+import AboutPage from '@/views/AboutPage.vue';
 
 const routes = [
   {
@@ -54,6 +55,11 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomePage,
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: AboutPage,
   },
 ];
 

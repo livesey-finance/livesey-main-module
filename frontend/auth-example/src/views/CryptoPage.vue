@@ -1,7 +1,7 @@
 <template>
   <div class="shares-page" @contextmenu="openConsole">
     <header>
-      <img :src="logoSrc" alt="Logo" class="logo" />
+      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">
@@ -13,8 +13,8 @@
       </div>
       <nav>
         <a href="/">Home</a>
-        <a href="/shares" class="active">Shares</a>
-        <a href="/crypto">Crypto</a>
+        <a href="/shares">Shares</a>
+        <a href="/crypto" class="active">Crypto</a>
         <a href="/portfolio">Portfolio</a>
         <a href="/calculator">Calculator</a>
         <a href="/about">About</a>
@@ -27,6 +27,10 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
+                <label class="theme-toggle">
+          <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
+          <span class="slider"></span>
+        </label>
       </nav>
     </header>
     <div class="content">
@@ -215,6 +219,7 @@ export default {
       liquidityMetrics: [],
       otherMetrics: [],
       searchQuery: '',
+      darkTheme: false,
       suggestions: []
     };
   },
@@ -368,6 +373,16 @@ export default {
           return 'not-estimated';
       }
     },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        localStorage.setItem('theme', 'dark');
+        document.body.classList.add('dark-theme');
+      } else {
+        localStorage.setItem('theme', 'light');
+        document.body.classList.remove('dark-theme');
+      }
+    },
     openConsole(event) {
       console.log("Console opened on right-click", event);
     }
@@ -376,6 +391,15 @@ export default {
     this.logoSrc = this.importLogo('logo.png');
     this.fetchCompanyDetails();
     this.fetchMetrics();
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
+    }
   }
 };
 </script>
@@ -507,7 +531,7 @@ nav a.active {
 }
 
 .portfolio-btn {
-  background-color: #4caf50;
+  background-color: #333;
   color: #fff;
   border: none;
   padding: 15px 5px; /* Reduced padding for smaller button */
@@ -516,57 +540,25 @@ nav a.active {
 }
 
 .portfolio-btn:hover {
-  background-color: #45a049;
+  background-color: #A3A9A9;
+  color: #333;
+  transition: 0.2s;
 }
 
 .portfolio-btn.remove-btn {
-  background-color: #f44336; /* Red color for remove button */
+    background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 15px 5px; /* Reduced padding for smaller button */
+  cursor: pointer;
+  margin-left: 80px;
 }
 
 .portfolio-btn.remove-btn:hover {
-  background-color: #e53935;
+    background-color: #A3A9A9;
+  color: #333;
+  transition: 0.2s;
 }
-
-.search-container {
-  display: flex; /* Використовуємо flex для правильного вирівнювання */
-  align-items: center; /* Вирівнюємо по центру вертикально */
-  margin-left: 20px;
-  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
-  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
-  position: relative; /* Позиціювання для suggestions */
-}
-
-.search-container input {
-  padding: 10px;
-  font-size: 16px;
-  width: 400px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.suggestions {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  z-index: 1000;
-}
-
-.suggestions li {
-  padding: 10px;
-  cursor: pointer;
-}
-
-.suggestions li:hover {
-  background-color: #f0f0f0;
-}
-
 
 .tabs {
   display: flex;
@@ -589,7 +581,7 @@ nav a.active {
 }
 
 .tabs button:hover {
-  background-color: #A3A9A9;
+  background-color: #9BA7B0;
   color: #333;
   transition: 0.2s;
 }
@@ -650,53 +642,39 @@ th {
 }
 
 footer {
-  width: 100%;
   background-color: #333;
   color: #fff;
   padding: 20px;
-  box-sizing: border-box;
-  margin-top: auto;
 }
+
 .footer-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
+
 .footer-left {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
+
 .footer-logo {
+  font-size: 24px;
   color: #fff;
   text-decoration: none;
-  font-size: 20px;
 }
-.footer-social {
-  display: flex;
-  gap: 20px;
-  margin-top: 10px;
-}
+
 .footer-social a {
-  color: #fff; /* Ensure the social links are white */
+  color: #fff;
   text-decoration: none;
+  margin-right: 15px;
 }
-.footer-social a:hover {
-  text-decoration: underline;
-}
-.footer-right {
-  display: flex;
-  gap: 20px;
-  font-size: 16px;
-  margin-top: 20px;
-}
+
 .footer-right a {
   color: #fff;
   text-decoration: none;
-}
-.footer-right a:hover {
-  text-decoration: underline;
+  margin-right: 15px;
 }
 
 .modal {
@@ -768,6 +746,46 @@ button {
   font-size: 16px;
 }
 
+.search-container {
+  display: flex; /* Використовуємо flex для правильного вирівнювання */
+  align-items: center; /* Вирівнюємо по центру вертикально */
+  margin-left: 20px;
+  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
+  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
+  position: relative; /* Позиціювання для suggestions */
+}
+
+.search-container input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+}
+
+.suggestions li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #f0f0f0;
+}
+
 p {
   margin-top: 20px;
   cursor: pointer;
@@ -810,10 +828,6 @@ h2 {
     margin-right: 0;
   }
 
-  .portfolio-btn {
-    margin-left: 0;
-  }
-
   .tabs {
     justify-content: center;
   }
@@ -832,5 +846,163 @@ h2 {
     gap: 10px;
     align-items: flex-start; /* Align items to the start (left) */
   }
+}
+
+/* Dark Theme Styles */
+.dark-theme {
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+.dark-theme header {
+  background-color: #21252d;
+}
+
+.dark-theme nav a {
+  color: #c9d1d9;
+}
+
+.dark-theme h1 {
+  color: #c9d1d9;
+}
+
+.dark-theme h2 {
+  color: #c9d1d9;
+}
+
+.dark-theme nav a:hover {
+  background-color: #134B70;
+}
+
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .content {
+  background-color: #161b22;
+}
+
+.dark-theme footer {
+  background-color: #1e1e1e;
+}
+
+.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu {
+  background-color: #21262d;
+}
+
+.dark-theme .search-container input {
+  background-color: #161b22;
+  color: #c9d1d9;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #c9d1d9;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .side-panel {
+  background-color: #21262d;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.dark-theme .ratios-table th, .dark-theme .ratios-table td {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border-bottom: 1px solid #30363d;
+}
+
+.dark-theme .portfolio-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 15px 5px; /* Reduced padding for smaller button */
+  cursor: pointer;
+  margin-left: 80px;
+}
+.dark-theme .portfolio-btn:hover {
+  background-color: #333;
+  color: #A3A9A9;
+  transition: 0.2s;
+}
+fff
+.dark-theme .portfolio-btn.remove-btn {
+    background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 15px 5px; 
+  cursor: pointer;
+  margin-left: 80px;
+}
+
+.dark-theme.portfolio-btn.remove-btn:hover {
+  background-color: #333;
+  color: #A3A9A9;
+  transition: 0.2s;
+}
+
+.dark-theme button {
+  color: #21262d;
+}
+
+.theme-toggle {
+  margin-left: 20px;
+  margin-top: 15px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 14px;
+}
+
+.theme-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: -3px;
+  bottom: -2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196f3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
 }
 </style>
