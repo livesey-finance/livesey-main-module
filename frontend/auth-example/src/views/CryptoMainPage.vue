@@ -531,6 +531,7 @@ nav a.active {
   border: none;
   background-color: #f0f0f0;
   border-radius: 5px;
+    color: #000;
 }
 
 .pagination button:disabled {
@@ -566,6 +567,7 @@ nav a.active {
   border: none;
   background-color: #f0f0f0;
   border-radius: 5px;
+    color: #000;
 }
 
 .side-category button:hover {

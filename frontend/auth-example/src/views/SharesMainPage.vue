@@ -384,6 +384,7 @@ nav a.active {
   border: none;
   background-color: #f0f0f0;
   border-radius: 5px;
+  color: #000;
 }
 
 .switch-container button:hover {
@@ -440,6 +441,7 @@ nav a.active {
   border: none;
   background-color: #f0f0f0;
   border-radius: 5px;
+    color: #000;
 }
 
 .pagination button:disabled {
@@ -461,6 +463,7 @@ nav a.active {
   padding: 10px;
   margin-top: 20px; /* Added margin-top for better spacing */
   background-color: #f9f9f9;
+  
 }
 
 .side-category {
@@ -515,6 +518,7 @@ nav a.active {
   border: none;
   background-color: #f0f0f0;
   border-radius: 5px;
+    color: #000;
 }
 
 .side-category button:hover {

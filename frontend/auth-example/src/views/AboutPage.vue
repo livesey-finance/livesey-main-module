@@ -324,6 +324,12 @@ main {
   padding: 20px;
   border-radius: 10px;
   width: 120%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+}
+
+.author-card:hover {
+  transform: scale(1.07);
 }
 
 .author-card img {
@@ -369,6 +375,10 @@ main {
   display: flex;
   gap: 20px;
     margin-top: 10px;
+}
+
+.social-icons a img:hover {
+  transform: scale(1.2);
 }
 
 .social-icons a img {
