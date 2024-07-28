@@ -26,10 +26,12 @@
 </template>
 
 <script>
+import { mockSignUp } from '@/mocks/signUpMock';
+
 export default {
   name: 'SignupPage',
   props: {
-    darkTheme: Boolean
+    darkTheme: Boolean,
   },
   data() {
     return {
@@ -45,8 +47,22 @@ export default {
     };
   },
   methods: {
-    signup() {
-      console.log('Signing up with', this.firstName, this.lastName, this.username, this.email, this.password);
+    async signup() {
+      const userData = {
+        firstName: this.firstName,
+        lastName: this.lastName,
+        username: this.username,
+        email: this.email,
+        password: this.password,
+        repeatPassword: this.repeatPassword,
+      };
+      try {
+        const response = await mockSignUp(userData);
+        console.log(response.message);
+        this.$emit('signup', response.user); // Emit the user data on successful signup
+      } catch (error) {
+        console.error(error.message);
+      }
     },
     switchToLogin() {
       this.$emit('switchToLogin');
@@ -68,12 +84,14 @@ export default {
       this.repeatPasswordFieldType = this.repeatPasswordFieldType === 'password' ? 'text' : 'password';
     },
     googleAuth() {
-      // Handle Google authentication logic here
       console.log('Redirecting to Google authentication...');
     }
   }
 };
 </script>
+
+
+
 
 <style scoped>
 .auth-container {
@@ -107,7 +125,12 @@ export default {
 }
 .logo {
   margin-bottom: 0px;
-  max-width: 350px;
+  max-width: 200px;
+}
+
+.logo:hover {
+  transform: scale(1.2);
+  transition: 0.2s;
 }
 .auth-input {
   width: 300px;
@@ -142,6 +165,9 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+}
+button:hover {
+  background-color: #c4c4c4;
 }
 p {
   margin-top: 20px;
@@ -190,7 +216,7 @@ h2 {
 }
 
 .dark-theme .logo {
-  max-width: 350px;
+  max-width: 200px;
 }
 
 .dark-theme .auth-box {
@@ -201,9 +227,8 @@ h2 {
   background-color: #30363d;
   color: #c9d1d9;
 }
-.dark-theme button {
-  background-color: #2F4172;
-  color: #ffffff;
+.dark-theme button:hover {
+  background-color: #134B70;
 }
 .dark-theme .close-button {
   color: #ffffff;

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 import PortfolioPage from '@/views/PortfolioPage.vue';
+import PortfolioListPage from '@/views/PortfolioListPage.vue';
 import SharesPage from '@/views/SharesPage.vue';
 import SharesMainPage from '@/views/SharesMainPage.vue';
 import CryptoPage from '@/views/CryptoPage.vue';
@@ -23,7 +24,12 @@ const routes = [
   },
   {
     path: '/portfolio',
-    name: 'portfolio',
+    name: 'portfolio-list',
+    component: PortfolioListPage,
+  },
+  {
+    path: '/portfolio/:username',
+    name: 'portfolio-detail',
     component: PortfolioPage,
   },
   {

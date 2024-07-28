@@ -1,5 +1,5 @@
 <template>
-  <div class="about-container">
+  <div :class="['about-container', { 'dark-theme': darkTheme }]">
     <header>
       <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
@@ -17,7 +17,7 @@
         <a href="/crypto">Crypto</a>
         <a href="/portfolio">Portfolio</a>
         <a href="/calculator">Calculator</a>
-        <a href="/about" class="active">About</a>
+        <a href="#" class="active">About</a>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -43,7 +43,7 @@
           <h2>Authors:</h2>
           <img src="@/assets/hh88.jpg" alt="Heorhii Huziuk" />
           <p>Heorhii Huziuk</p>
-          <p1>CEO</p1>
+          <p>CEO</p>
         </div>
       </section>
       <section class="section social-media">
@@ -81,50 +81,109 @@
         </div>
       </div>
     </footer>
-        <!-- Login Modal -->
+
+    <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="handleLogin" />
     </div>
 
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" @signup="handleSignup" />
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
 export default {
   components: {
     LoginPage,
-    SignupPage
+    SignupPage,
   },
   data() {
-  return {
-    showLogin: false,
-    showSignup: false,
-    isLoggedIn: false,
-    showProfileMenu: false,
-    userIcon: require('@/assets/default-user.png'),
-    darkTheme: false,
-    searchQuery: '', // Add this if not already present
-    suggestions: []  // Ensure this is added
-  };
- },
-  mounted() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      this.darkTheme = true;
-      document.body.classList.add('dark-theme');
-    } else {
-      this.darkTheme = false;
-      document.body.classList.remove('dark-theme');
-    }
+    return {
+      showLogin: false,
+      showSignup: false,
+      isLoggedIn: false, // Maintain local authentication state
+      showProfileMenu: false,
+      searchQuery: '',
+      suggestions: [],
+      darkTheme: false,
+      user: null, // Store user data locally
+    };
+  },
+  computed: {
+    // If the user has a custom avatar, display it
+    userIcon() {
+      return this.user?.avatar || require('@/assets/default-user.png');
+    },
   },
   methods: {
+    openLogin() {
+      this.showLogin = true;
+      this.showSignup = false;
+      this.logAction('Opened Login Modal');
+    },
+    openSignup() {
+      this.showSignup = true;
+      this.showLogin = false;
+      this.logAction('Opened Signup Modal');
+    },
+    closeModal() {
+      this.showLogin = false;
+      this.showSignup = false;
+      this.logAction('Closed Modal');
+    },
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
+    },
+    viewProfile() {
+      console.log('Viewing profile');
+      this.logAction('Viewing Profile');
+    },
+    logout() {
+      this.isLoggedIn = false;
+      this.user = null;
+      this.showProfileMenu = false;
+      localStorage.removeItem('user');
+      this.logAction('User Logged Out');
+    },
+    handleLogin(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showLogin = false;
+      this.logAction('User Logged In');
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showSignup = false;
+      this.logAction('User Signed Up');
+    },
+    async fetchSuggestions() {
+      try {
+        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        this.suggestions = response.data || [];
+        this.logAction('Fetched Suggestions');
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
+      }
+    },
+    selectSuggestion(item) {
+      this.$router.push(`/crypto/${item.code}`);
+      this.suggestions = [];
+      this.searchQuery = '';
+      this.logAction('Selected Suggestion', item);
+    },
     toggleTheme() {
       this.darkTheme = !this.darkTheme;
       if (this.darkTheme) {
@@ -134,34 +193,40 @@ export default {
         document.body.classList.remove('dark-theme');
         localStorage.setItem('theme', 'light');
       }
+      this.logAction('Toggled Theme', { darkTheme: this.darkTheme });
     },
-        openLogin() {
-      this.showLogin = true;
-      this.showSignup = false;
-    },
-    openSignup() {
-      this.showSignup = true;
-      this.showLogin = false;
-    },
-    closeModal() {
-      this.showLogin = false;
-      this.showSignup = false;
-    },
-    toggleProfileMenu() {
-      this.showProfileMenu = !this.showProfileMenu;
-    },
-    viewProfile() {
-      console.log('Viewing profile');
-    },
-    logout() {
-      this.isLoggedIn = false;
-      this.showProfileMenu = false;
-    },
-    login() {
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest'
+      };
+      console.log('Log Entry:', logEntry);
+    }
+  },
+  created() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    this.darkTheme = true;
+    document.body.classList.add('dark-theme');
+  } else {
+    this.darkTheme = false;
+    document.body.classList.remove('dark-theme');
+  }
+
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    try {
+      this.user = JSON.parse(savedUser);
       this.isLoggedIn = true;
-      this.showLogin = false;
+      this.logAction('Restored User Session');
+    } catch (error) {
+      console.error('Error parsing saved user data:', error);
+      localStorage.removeItem('user'); // Clear corrupted data
     }
   }
+}
 };
 </script>
 
@@ -573,6 +638,53 @@ footer {
     gap: 10px;
     margin-right: 0;
   }
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+.profile-menu a:hover {
+  background-color: #f0f0f0;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161b22;
+}
+
+.dark-theme .profile-menu a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #134B70;
 }
 
 </style>

@@ -1,103 +1,97 @@
 <template>
-  <div :class="['shares-table', { 'dark-theme': darkTheme }]">
-    <table>
-      <thead>
-        <tr>
-          <th
-            v-for="header in relevantHeaders"
-            :key="header.key"
-            :class="{ sortable: header.sortable }"
-            @click="header.sortable && sort(header.key)"
-          >
-            {{ header.label }}
-            <span v-if="header.sortable">
-              <span v-if="sortedKey === header.key">
-                <span v-if="sortedDirection === 'asc'">▲</span>
-                <span v-else>▼</span>
-              </span>
-            </span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in sortedData" :key="row.code">
-          <td v-if="showNameField">
-            <a @click.prevent="goToStockDetail(row.code)">{{ row.name }}</a>
-          </td>
-          <td v-for="header in relevantHeaders.slice(showNameField ? 1 : 0)" :key="header.key">{{ row[header.key] }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <transition name="fade-out" @after-leave="closeModal">
+    <div v-if="isModalOpen" :class="['auth-container', { 'dark-theme': darkTheme }]" @contextmenu="openConsole">
+      <div class="auth-box">
+        <span class="close-button" @click="startCloseModal">&times;</span>
+        <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
+        <h2 class="signup-title">Sign Up</h2>
+        <input type="text" placeholder="First name" v-model="firstName" class="auth-input" />
+        <input type="text" placeholder="Last name" v-model="lastName" class="auth-input" />
+        <input type="text" placeholder="Username" v-model="username" class="auth-input" />
+        <input type="email" placeholder="Email" v-model="email" class="auth-input" />
+        <div class="password-container">
+          <input :type="passwordFieldType" placeholder="Password" v-model="password" class="auth-input" />
+          <span class="toggle-password" @click="togglePasswordVisibility">{{ passwordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
+        </div>
+        <div class="password-container">
+          <input :type="repeatPasswordFieldType" placeholder="Repeat your password" v-model="repeatPassword" class="auth-input" />
+          <span class="toggle-password" @click="toggleRepeatPasswordVisibility">{{ repeatPasswordFieldType === 'password' ? 'Show' : 'Hide' }}</span>
+        </div>
+        <button @click="signup">Sign Up</button>
+        <p @click="switchToLogin">I already have an account! Sign in</p>
+        <p @click="googleAuth" class="google-auth">Continue with Google</p>
+      </div>
+    </div>
+  </transition>
 </template>
 
 <script>
+import { mockSignUp } from '@/mocks/signUpMock';
 export default {
+  name: 'SignupPage',
   props: {
-    data: Array,
-    additionalFields: Array,
-    isTopTen: Boolean,
-    darkTheme: Boolean, // Accept darkTheme as a prop
+    darkTheme: Boolean,
   },
   data() {
     return {
-      sortedKey: null,
-      sortedDirection: 'asc',
-      headers: [
-        { label: 'Name', key: 'name', sortable: false },
-        { label: 'Code', key: 'code', sortable: true },
-        { label: 'Last', key: 'last', sortable: true },
-        { label: 'High', key: 'high', sortable: false },
-        { label: 'Low', key: 'low', sortable: false },
-        { label: 'Change', key: 'change', sortable: true },
-        { label: 'Change%', key: 'changePercent', sortable: true },
-        { label: 'Volume', key: 'volume', sortable: false },
-        { label: 'Time', key: 'time', sortable: false },
-        { label: 'Market Cap', key: 'marketCap', sortable: false },
-        { label: 'Revenue', key: 'revenue', sortable: false },
-        { label: 'P/E Ratio', key: 'peRatio', sortable: true },
-        { label: 'EPS', key: 'eps', sortable: true },
-        { label: 'Beta', key: 'beta', sortable: true },
-      ],
+      firstName: '',
+      lastName: '',
+      username: '',
+      email: '',
+      password: '',
+      repeatPassword: '',
+      passwordFieldType: 'password',
+      repeatPasswordFieldType: 'password',
+      isModalOpen: true,
     };
   },
-  computed: {
-    relevantHeaders() {
-      return this.headers.filter(header => {
-        if (header.key === 'name') {
-          return !this.isTopTen;
-        }
-        return this.additionalFields.includes(header.label);
-      });
-    },
-    sortedData() {
-      if (!this.sortedKey) return this.data;
-
-      return [...this.data].sort((a, b) => {
-        if (a[this.sortedKey] < b[this.sortedKey]) return this.sortedDirection === 'asc' ? -1 : 1;
-        if (a[this.sortedKey] > b[this.sortedKey]) return this.sortedDirection === 'asc' ? 1 : -1;
-        return 0;
-      });
-    },
-    showNameField() {
-      return this.relevantHeaders.some(header => header.key === 'name');
-    },
-  },
   methods: {
-    sort(key) {
-      if (this.sortedKey === key) {
-        this.sortedDirection = this.sortedDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        this.sortedKey = key;
-        this.sortedDirection = 'asc';
+    async signup() {
+      const userData = {
+        firstName: this.firstName,
+        lastName: this.lastName,
+        username: this.username,
+        email: this.email,
+        password: this.password,
+        repeatPassword: this.repeatPassword,
+      };
+
+      try {
+        const response = await mockSignUp(userData);
+        console.log(response.message);
+        this.$emit('signup', response.user); // Передаємо інформацію про користувача
+        alert(response.message); // Відображення повідомлення про успіх
+      } catch (error) {
+        console.error(error.message);
+        alert(error.message); // Відображення повідомлення про помилку
       }
     },
-    goToStockDetail(stockCode) {
-      this.$router.push(`/shares/${stockCode}`);
+    switchToLogin() {
+      this.$emit('switchToLogin');
     },
-  },
+    startCloseModal() {
+      this.isModalOpen = false;
+    },
+    closeModal() {
+      this.$emit('close');
+    },
+    openConsole(event) {
+      console.log('Right click detected on SignupPage');
+      console.log('Mouse event:', event);
+    },
+    togglePasswordVisibility() {
+      this.passwordFieldType = this.passwordFieldType === 'password' ? 'text' : 'password';
+    },
+    toggleRepeatPasswordVisibility() {
+      this.repeatPasswordFieldType = this.repeatPasswordFieldType === 'password' ? 'text' : 'password';
+    },
+    googleAuth() {
+      console.log('Redirecting to Google authentication...');
+    }
+  }
 };
 </script>
+
 
 <style scoped>
 .shares-table {

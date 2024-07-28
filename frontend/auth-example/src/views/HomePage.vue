@@ -93,12 +93,12 @@
     </footer>
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="handleLogin" />
     </div>
 
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" @signup="handleSignup" />
     </div>
   </div>
 </template>
@@ -122,12 +122,15 @@ export default {
       suggestions: [],
       showLogin: false,
       showSignup: false,
-      isLoggedIn: false,
       showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'),
       darkTheme: false,
       newsUpdateInterval: null
     };
+  },
+  computed: {
+    userIcon() {
+      return this.user?.avatar || require('@/assets/default-user.png');
+    }
   },
   methods: {
     async fetchNews(category, setNews) {
@@ -152,17 +155,17 @@ export default {
       event.currentTarget.scrollLeft += event.deltaY;
     },
     async fetchSuggestions() {
-      try {
-        const response = await axios.get('/api/search', { params: { query: this.searchQuery } });
-        this.suggestions = response.data || [];
-        if (this.suggestions.length === 0) {
-          this.suggestions = [{ name: 'No matchings were found', code: '' }];
-        }
-      } catch (error) {
-        console.error('Error fetching suggestions:', error);
+    try {
+      const response = await axios.get('/api/search', { params: { query: this.searchQuery } });
+      this.suggestions = response.data || [];
+      if (this.suggestions.length === 0) {
         this.suggestions = [{ name: 'No matchings were found', code: '' }];
       }
-    },
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      this.suggestions = [{ name: 'No matchings were found', code: '' }];
+    }
+   },
     selectSuggestion(item) {
       if (item.code) {
         this.$router.push(`/shares/${item.code}`);
@@ -188,13 +191,13 @@ export default {
     viewProfile() {
       console.log('Viewing profile');
     },
-    logout() {
-      this.isLoggedIn = false;
-      this.showProfileMenu = false;
-    },
-    login() {
-      this.isLoggedIn = true;
+    handleLogin(user) {
+      this.login(user);
       this.showLogin = false;
+    },
+    handleSignup(user) {
+      this.login(user);
+      this.showSignup = false;
     },
     formatTime(dateString) {
       const date = new Date(dateString);
@@ -244,6 +247,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .home-container {
@@ -685,4 +689,52 @@ button, a{
 .dark-theme .profile-menu {
   background-color: #21262d;
 }
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+.profile-menu a:hover {
+  background-color: #f0f0f0;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161b22;
+}
+
+.dark-theme .profile-menu a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #134B70;
+}
+
 </style>

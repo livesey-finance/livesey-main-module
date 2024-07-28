@@ -1,5 +1,5 @@
 <template>
-  <div :class="['shares-page', { 'dark-theme': darkTheme }]">
+  <div :class="['crypto-main-page', { 'dark-theme': darkTheme }]">
     <header>
       <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
       <div class="search-container">
@@ -27,7 +27,6 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
-        <!-- Add Theme Toggle Here -->
         <label class="theme-toggle">
           <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
           <span class="slider"></span>
@@ -40,7 +39,6 @@
           <h1>Cryptocurrency</h1>
         </div>
         <div v-if="activeSection === 'price'" class="shares-table-container">
-          <!-- Pass darkTheme as a prop to the CryptoTable component -->
           <CryptoTable
             :data="paginatedPriceData"
             :additionalFields="['Name', 'Last', 'Change[1h]', 'Change[24h]', 'Change[7d]', 'Time']"
@@ -90,12 +88,12 @@
 
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="handleLogin" />
     </div>
 
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" @signup="handleSignup" />
     </div>
   </div>
 </template>
@@ -122,7 +120,7 @@ export default {
       showSignup: false,
       isLoggedIn: false,
       showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
+      userIcon: require('@/assets/default-user.png'), // Замість з правильним шляхом до іконки користувача
       priceData: [],
       cryptoData: [], // Added cryptoData
       gainers: [],
@@ -131,7 +129,8 @@ export default {
       itemsPerPage: 25,
       searchQuery: '',
       suggestions: [],
-      darkTheme: false // Add theme state
+      darkTheme: false, // Add theme state
+      user: null // Додаємо змінну для зберігання інформації про користувача
     };
   },
   computed: {
@@ -148,44 +147,65 @@ export default {
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
+      this.logAction('Opened Login Modal');
     },
     openSignup() {
       this.showSignup = true;
       this.showLogin = false;
+      this.logAction('Opened Signup Modal');
     },
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+      this.logAction('Closed Modal');
     },
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
       // Navigate to profile page or show profile details
       console.log('Viewing profile');
+      this.logAction('Viewing Profile');
     },
     logout() {
       this.isLoggedIn = false;
+      this.user = null; // Видаляємо інформацію про користувача при логауті
       this.showProfileMenu = false;
+      localStorage.removeItem('user');
+      this.logAction('User Logged Out');
       // Perform any additional logout operations, like clearing tokens
     },
-    login() {
+    handleLogin(user) {
       this.isLoggedIn = true;
+      this.user = user; // Зберігаємо інформацію про користувача
+      localStorage.setItem('user', JSON.stringify(user));
       this.showLogin = false;
+      this.logAction('User Logged In');
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user; // Зберігаємо інформацію про користувача
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showSignup = false;
+      this.logAction('User Signed Up');
     },
     async fetchSuggestions() {
       try {
         const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
         this.suggestions = response.data || [];
+        this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
       }
     },
     selectSuggestion(item) {
       this.$router.push(`/crypto/${item.code}`);
       this.suggestions = [];
       this.searchQuery = '';
+      this.logAction('Selected Suggestion', item);
     },
     importLogo(src) {
       try {
@@ -243,39 +263,47 @@ export default {
         this.fundamentalData = response.data.fundamental || [];
         this.gainers = response.data.gainers || [];
         this.losers = response.data.losers || [];
+        this.logAction('Fetched Shares Data');
       } catch (error) {
         console.error('Error fetching shares data:', error);
         this.priceData = [];
         this.fundamentalData = [];
         this.gainers = [];
         this.losers = [];
+        this.logAction('Error Fetching Shares Data');
       }
     },
     async fetchCryptoData() {
       try {
         const response = await axios.get('/api/crypto'); // Replace with your API endpoint
         this.cryptoData = response.data || [];
+        this.logAction('Fetched Cryptocurrency Data');
       } catch (error) {
         console.error('Error fetching cryptocurrency data:', error);
         this.cryptoData = [];
+        this.logAction('Error Fetching Cryptocurrency Data');
       }
     },
     changeSection(section) {
       this.activeSection = section;
       this.currentPage = 1; // Reset to the first page when changing sections
+      this.logAction('Changed Section', { section });
     },
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
+        this.logAction('Changed Page', { page: this.currentPage });
       }
     },
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
+        this.logAction('Changed Page', { page: this.currentPage });
       }
     },
     openConsole(event) {
-      console.log("Console opened on right-click", event);
+      console.log('Console opened on right-click', event);
+      this.logAction('Opened Console', { event });
     },
     toggleTheme() {
       this.darkTheme = !this.darkTheme;
@@ -286,6 +314,16 @@ export default {
         document.body.classList.remove('dark-theme');
         localStorage.setItem('theme', 'light');
       }
+      this.logAction('Toggled Theme', { darkTheme: this.darkTheme });
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest'
+      };
+      console.log('Log Entry:', logEntry);
     }
   },
   created() {
@@ -302,9 +340,19 @@ export default {
       this.darkTheme = false;
       document.body.classList.remove('dark-theme');
     }
+
+    // Initialize user from localStorage
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      this.user = JSON.parse(savedUser);
+      this.isLoggedIn = true;
+      this.logAction('Restored User Session');
+    }
   }
 };
 </script>
+
+
 
 <style scoped>
 .shares-page {
@@ -841,4 +889,100 @@ button, a {
 .dark-theme button {
   color: #21262d;
 }
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+.profile-menu a:hover {
+  background-color: #f0f0f0;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161b22;
+}
+
+.dark-theme .profile-menu a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #134B70;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+.profile-menu a:hover {
+  background-color: #f0f0f0;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161b22;
+}
+
+.dark-theme .profile-menu a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #134B70;
+}
+
+
 </style>

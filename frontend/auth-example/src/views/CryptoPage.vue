@@ -1,12 +1,26 @@
 <template>
   <div class="shares-page" @contextmenu="openConsole">
     <header>
-      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
+      <img
+        :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')"
+        alt="Logo"
+        class="logo"
+      />
       <div class="search-container">
-        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="fetchSuggestions"
+          placeholder="Search stocks and crypto..."
+        />
         <ul v-if="searchQuery.length > 0" class="suggestions">
           <li v-if="suggestions.length === 0">no matchings were found</li>
-          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+          <li
+            v-else
+            v-for="item in suggestions.slice(0, 5)"
+            :key="item.code"
+            @click="selectSuggestion(item)"
+          >
             {{ item.name }} ({{ item.code }})
           </li>
         </ul>
@@ -27,7 +41,7 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
-                <label class="theme-toggle">
+        <label class="theme-toggle">
           <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
           <span class="slider"></span>
         </label>
@@ -40,18 +54,51 @@
           <h1>{{ companyName }}</h1>
           <h2>{{ companyCode }}</h2>
         </div>
-        <button @click="togglePortfolio" :class="['portfolio-btn', { 'remove-btn': isInPortfolio }]">
+        <button
+          @click="togglePortfolio"
+          :class="['portfolio-btn', { 'remove-btn': isInPortfolio }]"
+        >
           {{ isInPortfolio ? '- Remove from portfolio' : '+ Add to portfolio' }}
         </button>
       </div>
       <div class="ratios-container">
         <div class="tabs">
-          <button @click="activeTab = 'general'" :class="{ active: activeTab === 'general' }">General Metrics</button>
-          <button @click="activeTab = 'ratios'" :class="{ active: activeTab === 'ratios' }">Ratios & Analytics</button>
-          <button @click="activeTab = 'network'" :class="{ active: activeTab === 'network' }">Network Metrics</button>
-          <button @click="activeTab = 'social'" :class="{ active: activeTab === 'social' }">Social Activity</button>
-          <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity Metrics</button>
-          <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other Metrics</button>
+          <button
+            @click="activeTab = 'general'"
+            :class="{ active: activeTab === 'general' }"
+          >
+            General Metrics
+          </button>
+          <button
+            @click="activeTab = 'ratios'"
+            :class="{ active: activeTab === 'ratios' }"
+          >
+            Ratios & Analytics
+          </button>
+          <button
+            @click="activeTab = 'network'"
+            :class="{ active: activeTab === 'network' }"
+          >
+            Network Metrics
+          </button>
+          <button
+            @click="activeTab = 'social'"
+            :class="{ active: activeTab === 'social' }"
+          >
+            Social Activity
+          </button>
+          <button
+            @click="activeTab = 'liquidity'"
+            :class="{ active: activeTab === 'liquidity' }"
+          >
+            Liquidity Metrics
+          </button>
+          <button
+            @click="activeTab = 'other'"
+            :class="{ active: activeTab === 'other' }"
+          >
+            Other Metrics
+          </button>
         </div>
         <div class="ratios-content">
           <div v-if="activeTab === 'general'" class="ratios">
@@ -84,7 +131,9 @@
                 <tr v-for="ratio in ratios" :key="ratio.name">
                   <td>{{ ratio.name }}</td>
                   <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
+                  <td :class="getEstimationClass(ratio.estimation)">
+                    {{ ratio.estimation }}
+                  </td>
                   <td>{{ ratio.normalValue }}</td>
                 </tr>
               </tbody>
@@ -179,11 +228,20 @@
     </footer>
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage
+        @close="closeModal"
+        @switchToSignup="openSignup"
+        @login="handleLogin"
+      />
     </div>
+
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage
+        @close="closeModal"
+        @switchToLogin="openLogin"
+        @signup="handleSignup"
+      />
     </div>
   </div>
 </template>
@@ -197,7 +255,7 @@ export default {
   name: 'SharesPage',
   components: {
     LoginPage,
-    SignupPage
+    SignupPage,
   },
   data() {
     return {
@@ -220,7 +278,8 @@ export default {
       otherMetrics: [],
       searchQuery: '',
       darkTheme: false,
-      suggestions: []
+      suggestions: [],
+      user: null,
     };
   },
   methods: {
@@ -257,16 +316,26 @@ export default {
     },
     logout() {
       this.isLoggedIn = false;
+      this.user = null; // Clear user information on logout
       this.showProfileMenu = false;
       // Perform any additional logout operations, like clearing tokens
     },
-    login() {
+    handleLogin(user) {
       this.isLoggedIn = true;
+      this.user = user || {}; // Ensure user is an object
+      this.userIcon = this.user.avatar || require('@/assets/default-user.png'); // Set user icon
       this.showLogin = false;
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user || {}; // Ensure user is an object
+      this.userIcon = this.user.avatar || require('@/assets/default-user.png'); // Set user icon
+      this.showSignup = false;
     },
     importLogo(src) {
       try {
-        return require(`@/assets/${src}`);
+        const images = require.context('@/assets', false, /\.(png|jpe?g|svg)$/);
+        return images(`./${src}`);
       } catch (e) {
         return require('@/assets/default.png');
       }
@@ -292,53 +361,53 @@ export default {
         const data = response.data || {};
         this.generalMetrics = data.general || [
           { name: 'Market Cap', value: '500B' },
-          { name: 'Revenue', value: '300B' }
+          { name: 'Revenue', value: '300B' },
         ];
         this.ratios = data.ratios || [
           { name: 'P/E Ratio', value: '25', estimation: 'good', normalValue: '15-25' },
-          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' }
+          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' },
         ];
         this.networkMetrics = data.network || [
           { name: 'Node Count', value: '1000' },
-          { name: 'Hash Rate', value: '50 TH/s' }
+          { name: 'Hash Rate', value: '50 TH/s' },
         ];
         this.socialMetrics = data.social || [
           { name: 'Twitter Followers', value: '1M' },
-          { name: 'Reddit Subscribers', value: '500K' }
+          { name: 'Reddit Subscribers', value: '500K' },
         ];
         this.liquidityMetrics = data.liquidity || [
           { name: 'Current Ratio', value: '2.0' },
-          { name: 'Quick Ratio', value: '1.5' }
+          { name: 'Quick Ratio', value: '1.5' },
         ];
         this.otherMetrics = data.other || [
           { name: 'Employee Count', value: '50K' },
-          { name: 'Office Locations', value: '20' }
+          { name: 'Office Locations', value: '20' },
         ];
       } catch (error) {
         console.error('Error fetching metrics:', error);
         this.generalMetrics = [
           { name: 'Market Cap', value: '500B' },
-          { name: 'Revenue', value: '300B' }
+          { name: 'Revenue', value: '300B' },
         ];
         this.ratios = [
           { name: 'P/E Ratio', value: '25', estimation: 'good', normalValue: '15-25' },
-          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' }
+          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' },
         ];
         this.networkMetrics = [
           { name: 'Node Count', value: '1000' },
-          { name: 'Hash Rate', value: '50 TH/s' }
+          { name: 'Hash Rate', value: '50 TH/s' },
         ];
         this.socialMetrics = [
           { name: 'Twitter Followers', value: '1M' },
-          { name: 'Reddit Subscribers', value: '500K' }
+          { name: 'Reddit Subscribers', value: '500K' },
         ];
         this.liquidityMetrics = [
           { name: 'Current Ratio', value: '2.0' },
-          { name: 'Quick Ratio', value: '1.5' }
+          { name: 'Quick Ratio', value: '1.5' },
         ];
         this.otherMetrics = [
           { name: 'Employee Count', value: '50K' },
-          { name: 'Office Locations', value: '20' }
+          { name: 'Office Locations', value: '20' },
         ];
       }
     },
@@ -346,18 +415,13 @@ export default {
       try {
         const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
         this.suggestions = response.data || [];
-        if (this.suggestions.length === 0) {
-          this.suggestions = [{ name: 'No matchings were found', code: '' }];
-        }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        this.suggestions = [];
       }
     },
     selectSuggestion(item) {
-      if (item.code) {
-        this.$router.push(`/shares/${item.code}`);
-      }
+      this.$router.push(`/crypto/${item.code}`);
       this.suggestions = [];
       this.searchQuery = '';
     },
@@ -384,8 +448,8 @@ export default {
       }
     },
     openConsole(event) {
-      console.log("Console opened on right-click", event);
-    }
+      console.log('Console opened on right-click', event);
+    },
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
@@ -400,9 +464,11 @@ export default {
       this.darkTheme = false;
       document.body.classList.remove('dark-theme');
     }
-  }
+  },
 };
 </script>
+
+
 
 
 <style scoped>

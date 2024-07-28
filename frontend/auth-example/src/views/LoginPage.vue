@@ -19,10 +19,12 @@
 </template>
 
 <script>
+import { mockLogin } from '@/mocks/loginMock';
+
 export default {
   name: 'LoginPage',
   props: {
-    darkTheme: Boolean
+    darkTheme: Boolean,
   },
   data() {
     return {
@@ -33,11 +35,14 @@ export default {
     };
   },
   methods: {
-    getLogoSrc() {
-      return this.darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png');
-    },
-    login() {
-      console.log('Logging in with', this.usernameOrEmail, this.password);
+    async login() {
+      try {
+        const response = await mockLogin(this.usernameOrEmail, this.password);
+        console.log(response.message);
+        this.$emit('login', response.user); // Emit user data on successful login
+      } catch (error) {
+        console.error(error.message);
+      }
     },
     switchToSignup() {
       this.$emit('switchToSignup');
@@ -57,10 +62,13 @@ export default {
     },
     googleAuth() {
       console.log('Redirecting to Google authentication...');
-    }
+    },
   },
 };
 </script>
+
+
+
 
 <style scoped>
 .auth-container {
@@ -94,8 +102,9 @@ export default {
 }
 .logo {
   margin-bottom: 0px;
-  max-width: 350px;
+  max-width: 200px;
 }
+
 .auth-input {
   width: 300px;
   padding: 15px;
@@ -129,6 +138,9 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+}
+button:hover {
+  background-color: #c4c4c4;
 }
 p {
   margin-top: 20px;
@@ -181,8 +193,7 @@ h2 {
 }
 
 .dark-theme .logo {
-  max-width: 350px;
-  
+  max-width: 200px;
 }
 
 .dark-theme .auth-box {
@@ -208,5 +219,8 @@ h2 {
 }
 .dark-theme .signup-title {
   color: #c9d1d9;
+}
+.dark-theme button:hover {
+  background-color: #134B70;
 }
 </style>

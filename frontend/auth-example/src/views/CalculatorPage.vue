@@ -81,15 +81,16 @@
 
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="handleLogin" />
     </div>
 
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" @signup="handleSignup" />
     </div>
   </div>
 </template>
+
 <script>
 import {
   calculateCurrentRatio,
@@ -120,11 +121,36 @@ import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
+
 export default {
   components: {
     LoginPage,
     SignupPage
   },
+  created() {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    this.darkTheme = true;
+    document.body.classList.add('dark-theme');
+  } else {
+    this.darkTheme = false;
+    document.body.classList.remove('dark-theme');
+  }
+
+  const savedUser = localStorage.getItem('user');
+  if (savedUser) {
+    try {
+      this.user = JSON.parse(savedUser);
+      this.isLoggedIn = true;
+      this.logAction('Restored User Session');
+    } catch (error) {
+      console.error('Error parsing saved user data:', error);
+      localStorage.removeItem('user'); // Clear corrupted data
+      this.user = null;
+      this.isLoggedIn = false;
+    }
+  }
+},
   data() {
     return {
       formulas: [
@@ -191,15 +217,33 @@ export default {
       result: null,
       showLogin: false,
       showSignup: false,
-      isLoggedIn: false,
       showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
       searchQuery: '',
       darkTheme: false,
-      suggestions: []
+      suggestions: [],
+      isLoggedIn: false, // Maintain local authentication state
+      user: null, // Store user data locally
     };
   },
+  computed: {
+    userIcon() {
+      return this.getUser?.avatar || require('@/assets/default-user.png');
+    },
+  },
   methods: {
+    checkLoginStatus() {
+      // Check for logged-in user info in localStorage
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          this.user = JSON.parse(storedUser);
+          this.isLoggedIn = true;
+        } catch (error) {
+          console.error('Failed to parse user data:', error);
+          localStorage.removeItem('user');
+        }
+      }
+    },
     updateInputs() {
       const selected = this.formulas.find(formula => formula.id === this.selectedFormula);
       this.formulaInputs = selected.inputs.map(inputId => this.inputs[inputId]);
@@ -311,30 +355,55 @@ export default {
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
+      this.logAction('Opened Login Modal');
     },
     openSignup() {
       this.showSignup = true;
       this.showLogin = false;
+      this.logAction('Opened Signup Modal');
     },
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+      this.logAction('Closed Modal');
     },
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      // Navigate to profile page or show profile details
       console.log('Viewing profile');
+      this.logAction('Viewing Profile');
     },
     logout() {
       this.isLoggedIn = false;
+      this.user = null;
       this.showProfileMenu = false;
-      // Perform any additional logout operations, like clearing tokens
+      localStorage.removeItem('user');
+      this.logAction('User Logged Out');
     },
-    login() {
+    handleLogin(user) {
       this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
       this.showLogin = false;
+      this.logAction('User Logged In');
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showSignup = false;
+      this.logAction('User Signed Up');
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest'
+      };
+      console.log('Log Entry:', logEntry);
     },
     getFormulaHeader(formulaId) {
       const formula = this.formulas.find(f => f.id === formulaId);
@@ -896,4 +965,52 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(20px);
 }
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #333;
+}
+
+.profile-menu a:hover {
+  background-color: #f0f0f0;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161b22;
+}
+
+.dark-theme .profile-menu a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #134B70;
+}
+
 </style>
