@@ -1,23 +1,37 @@
 <template>
   <div class="shares-page" @contextmenu="openConsole">
     <header>
-      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
+      <img
+        :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')"
+        alt="Logo"
+        class="logo"
+      />
       <div class="search-container">
-        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="fetchSuggestions"
+          placeholder="Search stocks and crypto..."
+        />
         <ul v-if="searchQuery.length > 0" class="suggestions">
           <li v-if="suggestions.length === 0">no matchings were found</li>
-          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+          <li
+            v-else
+            v-for="item in suggestions.slice(0, 5)"
+            :key="item.code"
+            @click="selectSuggestion(item)"
+          >
             {{ item.name }} ({{ item.code }})
           </li>
         </ul>
       </div>
       <nav>
-        <a href="/">Home</a>
-        <a href="/shares" class="active">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/calculator">Calculator</a>
-        <a href="/about">About</a>
+        <router-link to="/">Home</router-link>
+        <router-link to="/shares" class="active">Shares</router-link>
+        <router-link to="/crypto">Crypto</router-link>
+        <router-link to="/portfolio">Portfolio</router-link>
+        <router-link to="/calculator">Calculator</router-link>
+        <router-link to="/about">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -40,84 +54,47 @@
           <h1>{{ companyName }}</h1>
           <h2>{{ companyCode }}</h2>
         </div>
-        <button @click="togglePortfolio" :class="['portfolio-btn', { 'remove-btn': isInPortfolio }]">
+        <button @click="openPortfolioModal" :class="['portfolio-btn', { 'remove-btn': isInPortfolio }]">
           {{ isInPortfolio ? '- Remove from portfolio' : '+ Add to portfolio' }}
         </button>
       </div>
       <div class="ratios-container">
         <div class="tabs">
-          <button @click="activeTab = 'general'" :class="{ active: activeTab === 'general' }">General Metrics</button>
-          <button @click="activeTab = 'ratios'" :class="{ active: activeTab === 'ratios' }">Ratios & Analytics</button>
-          <button @click="activeTab = 'network'" :class="{ active: activeTab === 'network' }">Network Metrics</button>
-          <button @click="activeTab = 'social'" :class="{ active: activeTab === 'social' }">Social Activity</button>
-          <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity Metrics</button>
-          <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other Metrics</button>
+          <button @click="activeTab = 'debt'" :class="{ active: activeTab === 'debt' }">Debt Ratios</button>
+          <button @click="activeTab = 'efficiency'" :class="{ active: activeTab === 'efficiency' }">Efficiency Ratios</button>
+          <button @click="activeTab = 'liquidity'" :class="{ active: activeTab === 'liquidity' }">Liquidity Ratios</button>
+          <button @click="activeTab = 'valuation'" :class="{ active: activeTab === 'valuation' }">Valuation Ratios</button>
+          <button @click="activeTab = 'other'" :class="{ active: activeTab === 'other' }">Other Ratios</button>
         </div>
         <div class="ratios-content">
-          <div v-if="activeTab === 'general'" class="ratios">
-            <table class="ratios-table">
-              <thead>
-                <tr>
-                  <th>Metric</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="metric in generalMetrics" :key="metric.name">
-                  <td>{{ metric.name }}</td>
-                  <td>{{ metric.value }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-if="activeTab === 'ratios'" class="ratios">
+          <div v-if="activeTab === 'debt'" class="ratios">
             <table class="ratios-table">
               <thead>
                 <tr>
                   <th>Ratio</th>
                   <th>Value</th>
-                  <th>Estimation</th>
-                  <th>Normal Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ratio in ratios" :key="ratio.name">
+                <tr v-for="ratio in debtRatios" :key="ratio.name">
                   <td>{{ ratio.name }}</td>
                   <td>{{ ratio.value }}</td>
-                  <td :class="getEstimationClass(ratio.estimation)">{{ ratio.estimation }}</td>
-                  <td>{{ ratio.normalValue }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div v-if="activeTab === 'network'" class="ratios">
+          <div v-if="activeTab === 'efficiency'" class="ratios">
             <table class="ratios-table">
               <thead>
                 <tr>
-                  <th>Metric</th>
+                  <th>Ratio</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="metric in networkMetrics" :key="metric.name">
-                  <td>{{ metric.name }}</td>
-                  <td>{{ metric.value }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div v-if="activeTab === 'social'" class="ratios">
-            <table class="ratios-table">
-              <thead>
-                <tr>
-                  <th>Metric</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="metric in socialMetrics" :key="metric.name">
-                  <td>{{ metric.name }}</td>
-                  <td>{{ metric.value }}</td>
+                <tr v-for="ratio in efficiencyRatios" :key="ratio.name">
+                  <td>{{ ratio.name }}</td>
+                  <td>{{ ratio.value }}</td>
                 </tr>
               </tbody>
             </table>
@@ -126,14 +103,30 @@
             <table class="ratios-table">
               <thead>
                 <tr>
-                  <th>Metric</th>
+                  <th>Ratio</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="metric in liquidityMetrics" :key="metric.name">
-                  <td>{{ metric.name }}</td>
-                  <td>{{ metric.value }}</td>
+                <tr v-for="ratio in liquidityRatios" :key="ratio.name">
+                  <td>{{ ratio.name }}</td>
+                  <td>{{ ratio.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="activeTab === 'valuation'" class="ratios">
+            <table class="ratios-table">
+              <thead>
+                <tr>
+                  <th>Ratio</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="ratio in valuationRatios" :key="ratio.name">
+                  <td>{{ ratio.name }}</td>
+                  <td>{{ ratio.value }}</td>
                 </tr>
               </tbody>
             </table>
@@ -142,14 +135,14 @@
             <table class="ratios-table">
               <thead>
                 <tr>
-                  <th>Metric</th>
+                  <th>Ratio</th>
                   <th>Value</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="metric in otherMetrics" :key="metric.name">
-                  <td>{{ metric.name }}</td>
-                  <td>{{ metric.value }}</td>
+                <tr v-for="ratio in otherRatios" :key="ratio.name">
+                  <td>{{ ratio.name }}</td>
+                  <td>{{ ratio.value }}</td>
                 </tr>
               </tbody>
             </table>
@@ -179,12 +172,21 @@
     </footer>
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="handleLogin" />
     </div>
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" @signup="handleSignup" />
     </div>
+    <!-- Portfolio Modal -->
+    <PortfolioStockModal
+      v-if="showPortfolioModal"
+      :show="showPortfolioModal"
+      :isInPortfolio="isInPortfolio"
+      :portfolios="userPortfolios"
+      @confirm="handlePortfolioChange"
+      @close="closePortfolioModal"
+    />
   </div>
 </template>
 
@@ -192,81 +194,117 @@
 import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
+import PortfolioStockModal from '@/components/PortfolioStockModal.vue';
 
 export default {
   name: 'SharesPage',
   components: {
     LoginPage,
-    SignupPage
+    SignupPage,
+    PortfolioStockModal,
   },
   data() {
     return {
       isInPortfolio: false,
-      activeTab: 'general',
+      activeTab: 'debt',
       logoSrc: null,
       companyLogoSrc: null,
       companyName: 'Unknown',
       companyCode: 'unknown',
       showLogin: false,
       showSignup: false,
+      showPortfolioModal: false,
       isLoggedIn: false,
       showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
-      generalMetrics: [],
-      ratios: [],
-      networkMetrics: [],
-      socialMetrics: [],
-      liquidityMetrics: [],
-      otherMetrics: [],
+      debtRatios: [],
+      efficiencyRatios: [],
+      liquidityRatios: [],
+      valuationRatios: [],
+      otherRatios: [],
       searchQuery: '',
       suggestions: [],
-      darkTheme: false // Add darkTheme state
+      darkTheme: false,
+      user: null,
+      userPortfolios: [], // Add userPortfolios to store portfolios
     };
   },
+  computed: {
+    // If the user has a custom avatar, display it
+    userIcon() {
+      return this.user?.avatar || require('@/assets/default-user.png');
+    },
+  },
   methods: {
-    togglePortfolio() {
+    openPortfolioModal() {
       if (!this.isLoggedIn) {
-        alert('To add this to portfolio, you have to be logged in or registered');
+        alert('To add this to the portfolio, you have to be logged in or registered');
         return;
       }
-      this.isInPortfolio = !this.isInPortfolio;
+      this.showPortfolioModal = true;
+    },
+    closePortfolioModal() {
+      this.showPortfolioModal = false;
+    },
+    handlePortfolioChange({ portfolioId, quantity }) {
       if (this.isInPortfolio) {
-        console.log('Added to portfolio');
+        // Logic to remove from portfolio
+        console.log(`Removing ${quantity} shares from portfolio ${portfolioId}`);
       } else {
-        console.log('Removed from portfolio');
+        // Logic to add to portfolio
+        console.log(`Adding ${quantity} shares to portfolio ${portfolioId}`);
       }
+      this.isInPortfolio = !this.isInPortfolio;
     },
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
+      this.logAction('Opened Login Modal');
     },
     openSignup() {
       this.showSignup = true;
       this.showLogin = false;
+      this.logAction('Opened Signup Modal');
     },
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+      this.logAction('Closed Modal');
     },
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      // Navigate to profile page or show profile details
-      console.log('Viewing profile');
+      this.$router.push(`/profile/${this.user.username}`);
+      this.logAction('Viewing Profile');
+    },
+    handleLogin(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showLogin = false;
+      this.logAction('User Logged In');
+      this.loadUserPortfolios(); // Load portfolios after login
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showSignup = false;
+      this.logAction('User Signed Up');
+      this.loadUserPortfolios(); // Load portfolios after signup
     },
     logout() {
       this.isLoggedIn = false;
+      this.user = null;
       this.showProfileMenu = false;
-      // Perform any additional logout operations, like clearing tokens
-    },
-    login() {
-      this.isLoggedIn = true;
-      this.showLogin = false;
+      localStorage.removeItem('user');
+      this.logAction('User Logged Out');
     },
     importLogo(src) {
       try {
-        return require(`@/assets/${src}`);
+        const images = require.context('@/assets', false, /\.(png|jpe?g|svg)$/);
+        return images(`./${src}`);
       } catch (e) {
         return require('@/assets/default.png');
       }
@@ -279,83 +317,62 @@ export default {
         this.companyName = data.name || 'Unknown';
         this.companyCode = data.code || 'unknown';
         this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
+        this.logAction('Fetched Company Details', { companyCode });
       } catch (error) {
         console.error('Error fetching company details:', error);
         this.companyName = 'Unknown';
         this.companyCode = 'unknown';
         this.companyLogoSrc = this.importLogo('default.png');
+        this.logAction('Error Fetching Company Details', { error });
       }
     },
     async fetchMetrics() {
       try {
-        const response = await axios.get('/api/crypto-metrics');
+        const response = await axios.get('/api/shares-metrics');
         const data = response.data || {};
-        this.generalMetrics = data.general || [
-          { name: 'Market Cap', value: '500B' },
-          { name: 'Revenue', value: '300B' }
-        ];
-        this.ratios = data.ratios || [
-          { name: 'P/E Ratio', value: '25', estimation: 'good', normalValue: '15-25' },
-          { name: 'Debt/Equity', value: '0.5', estimation: 'normal', normalValue: '< 1' }
-        ];
-        this.networkMetrics = data.network || [
-          { name: 'Node Count', value: '1000' },
-          { name: 'Hash Rate', value: '50 TH/s' }
-        ];
-        this.socialMetrics = data.social || [
-          { name: 'Twitter Followers', value: '1M' },
-          { name: 'Reddit Subscribers', value: '500K' }
-        ];
-        this.liquidityMetrics = data.liquidity || [
-          { name: 'Current Ratio', value: '2.0' },
-          { name: 'Quick Ratio', value: '1.5' }
-        ];
-        this.otherMetrics = data.other || [
-          { name: 'Employee Count', value: '50K' },
-          { name: 'Office Locations', value: '20' }
-        ];
+        this.debtRatios = data.debtRatios || [];
+        this.efficiencyRatios = data.efficiencyRatios || [];
+        this.liquidityRatios = data.liquidityRatios || [];
+        this.valuationRatios = data.valuationRatios || [];
+        this.otherRatios = data.otherRatios || [];
+        this.logAction('Fetched Metrics');
       } catch (error) {
         console.error('Error fetching metrics:', error);
-        this.generalMetrics = [
-          { name: 'Market Cap', value: '500B' },
-          { name: 'Revenue', value: '300B' }
-        ];
-        
+        this.logAction('Error Fetching Metrics', { error });
       }
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        // Assuming the response has both stocks and cryptos with a 'category' field
         this.suggestions = response.data || [];
-        if (this.suggestions.length === 0) {
-          this.suggestions = [{ name: 'No matchings were found', code: '' }];
-        }
+
+        // Log action for fetching suggestions
+        this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
       }
     },
     selectSuggestion(item) {
-      if (item.code) {
+      // Check item category to route accordingly
+      if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
       }
+
       this.suggestions = [];
       this.searchQuery = '';
-    },
-    getEstimationClass(estimation) {
-      switch (estimation) {
-        case 'good':
-          return 'good';
-        case 'normal':
-          return 'normal';
-        case 'overvalued':
-          return 'overvalued';
-        default:
-          return 'not-estimated';
-      }
+      this.logAction('Selected Suggestion', item);
     },
     openConsole(event) {
-      console.log("Console opened on right-click", event);
+      console.log('Console opened on right-click', event);
+      this.logAction('Opened Console', { event });
     },
     toggleTheme() {
       this.darkTheme = !this.darkTheme;
@@ -366,13 +383,34 @@ export default {
         localStorage.setItem('theme', 'light');
         document.body.classList.remove('dark-theme');
       }
+      this.logAction('Toggled Theme', { darkTheme: this.darkTheme });
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest',
+      };
+      console.log('Log Entry:', logEntry);
+    },
+    async loadUserPortfolios() {
+      // Example API call to fetch user portfolios
+      try {
+        const response = await axios.get('/api/user-portfolios');
+        this.userPortfolios = response.data || [];
+        this.logAction('Loaded User Portfolios');
+      } catch (error) {
+        console.error('Error loading user portfolios:', error);
+        this.logAction('Error Loading User Portfolios', { error });
+      }
     },
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
     this.fetchCompanyDetails();
     this.fetchMetrics();
-    // Initialize theme from localStorage
+
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkTheme = true;
@@ -381,17 +419,30 @@ export default {
       this.darkTheme = false;
       document.body.classList.remove('dark-theme');
     }
-  }
+
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.logAction('Restored User Session');
+        this.loadUserPortfolios(); // Load portfolios if user is logged in
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+  },
 };
 </script>
-
 
 <style scoped>
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -404,7 +455,7 @@ html, body {
   flex-direction: column;
   min-height: 100vh;
   font-family: Arial, sans-serif;
-  color: #333;
+  color: #383838;
   width: 100%;
 }
 
@@ -413,7 +464,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -432,20 +483,21 @@ nav {
 }
 
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
 
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
@@ -469,17 +521,20 @@ nav a.active {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
 
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
-  color: #333;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
+  white-space: nowrap; /* Prevents text from wrapping */
 }
 
 .profile-menu a:hover {
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
+  color: #383838;
 }
 
 .content {
@@ -515,14 +570,17 @@ nav a.active {
   background-color: #333;
   color: #fff;
   border: none;
-  padding: 15px 5px; /* Reduced padding for smaller button */
+  font-size: 16px;
+  padding: 10px;
+  background-color: #EBEBEC;
+  color: #383838;
   cursor: pointer;
   margin-left: 80px;
 }
 
 .portfolio-btn:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
@@ -530,25 +588,30 @@ nav a.active {
     background-color: #333;
   color: #fff;
   border: none;
-  padding: 15px 5px; /* Reduced padding for smaller button */
+  font-size: 16px;
+  padding: 10px;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   cursor: pointer;
   margin-left: 80px;
 }
 
 .portfolio-btn.remove-btn:hover {
-    background-color: #A3A9A9;
-  color: #333;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 .tabs {
   display: flex;
+  justify-content: center; /* Center the buttons horizontally */
   gap: 10px;
   margin-bottom: 20px;
   flex-wrap: wrap; /* Allow items to wrap */
   color: #000;
   text-decoration: none;
   font-size: 22px;
+  width: 100%; /* Ensure the container takes up the full width */
 }
 
 .tabs button {
@@ -556,23 +619,22 @@ nav a.active {
   font-size: 18px;
   cursor: pointer;
   border: none;
-  color: #333;
-  background-color: #f0f0f0;
+  color: #383838;
+  background-color: #EBEBEC;
   border-radius: 5px;
 }
 
 .tabs button:hover {
-  background-color: #9BA7B0;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 .tabs button.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
-
 .ratios-content {
   width: 100%;
   display: flex;
@@ -592,7 +654,8 @@ nav a.active {
   table-layout: fixed; /* Fixed table layout to maintain column widths */
 }
 
-th, td {
+th,
+td {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -623,9 +686,11 @@ th {
 }
 
 footer {
-  background-color: #333;
-  color: #fff;
+  width: 100%;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .footer-content {
@@ -633,29 +698,55 @@ footer {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .footer-left {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .footer-logo {
-  font-size: 24px;
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+  font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
+}
+
+.footer-social {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
+  text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
+}
+
+.footer-right {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-right a {
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
 }
 
-.footer-right a {
-  color: #fff;
-  text-decoration: none;
-  margin-right: 15px;
+.footer-right a:hover {
+  color: #84847C;
 }
 
 .modal {
@@ -696,7 +787,7 @@ footer {
   border: none;
   border-radius: 8px;
   background-color: #c4c4c4;
-  color: #4f4f4f;
+  color: #383838;
   font-size: 16px;
   box-sizing: border-box;
 }
@@ -713,7 +804,7 @@ footer {
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 16px;
-  color: #4f4f4f;
+  color: #383838;
 }
 
 button {
@@ -749,7 +840,7 @@ button {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
@@ -770,11 +861,11 @@ button {
 p {
   margin-top: 20px;
   cursor: pointer;
-  color: #4f4f4f;
+  color: #383838;
 }
 
 h2 {
-  color: #4f4f4f;
+  color: #383838;
   margin-top: 0px;
 }
 

@@ -1,23 +1,38 @@
 <template>
   <div class="shares-page" @contextmenu="openConsole">
+    <!-- Header and Navigation -->
     <header>
-      <img :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')" alt="Logo" class="logo" />
+      <img
+        :src="darkTheme ? require('@/assets/logo-dark.png') : require('@/assets/logo.png')"
+        alt="Logo"
+        class="logo"
+      />
       <div class="search-container">
-        <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
+        <input
+          type="text"
+          v-model="searchQuery"
+          @input="fetchSuggestions"
+          placeholder="Search stocks and crypto..."
+        />
         <ul v-if="searchQuery.length > 0" class="suggestions">
           <li v-if="suggestions.length === 0">no matchings were found</li>
-          <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
+          <li
+            v-else
+            v-for="item in suggestions.slice(0, 5)"
+            :key="item.code"
+            @click="selectSuggestion(item)"
+          >
             {{ item.name }} ({{ item.code }})
           </li>
         </ul>
       </div>
       <nav>
-        <a href="/">Home</a>
-        <a href="#" class="active">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/calculator">Calculator</a>
-        <a href="/about">About</a>
+        <router-link to="/">Home</router-link>
+        <router-link to="/shares" class="active">Shares</router-link>
+        <router-link to="/crypto">Crypto</router-link>
+        <router-link to="/portfolio">Portfolio</router-link>
+        <router-link to="/calculator">Calculator</router-link>
+        <router-link to="/about">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -33,41 +48,92 @@
         </label>
       </nav>
     </header>
+
+    <!-- Main Content -->
     <div class="content">
       <div class="main-content">
         <div class="header-with-buttons">
           <h1>Stock Quotes</h1>
           <div class="switch-container">
-            <button @click="changeSection('price')" :class="{ active: activeSection === 'price' }">Price</button>
-            <button @click="changeSection('fundamental')" :class="{ active: activeSection === 'fundamental' }">Fundamental</button>
+            <button
+              @click="changeSection('price')"
+              :class="{ active: activeSection === 'price' }"
+            >
+              Price
+            </button>
+            <button
+              @click="changeSection('fundamental')"
+              :class="{ active: activeSection === 'fundamental' }"
+            >
+              Fundamental
+            </button>
           </div>
         </div>
+
         <div v-if="activeSection === 'price'" class="shares-table-container">
-          <SharesTable :data="paginatedPriceData" :additionalFields="['Name', 'Last', 'High', 'Low', 'Change', 'Change%', 'Volume']" :darkTheme="darkTheme"/>
+          <SharesTable
+            :data="paginatedPriceData"
+            :additionalFields="['Name', 'Last', 'High', 'Low', 'Change', 'Change%', 'Volume']"
+            :darkTheme="darkTheme"
+          />
         </div>
+
         <div v-else class="shares-table-container">
-          <SharesTable :data="paginatedFundamentalData" :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']" :darkTheme="darkTheme"/>
+          <SharesTable
+            :data="paginatedFundamentalData"
+            :additionalFields="['Market Cap', 'Revenue', 'P/E Ratio', 'EPS', 'Beta']"
+            :darkTheme="darkTheme"
+          />
         </div>
+
         <div class="pagination">
-          <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
+          <button @click="prevPage" :disabled="currentPage === 1">
+            Previous
+          </button>
           <span>Page {{ currentPage }} of {{ totalPages }}</span>
-          <button @click="nextPage" :disabled="currentPage === totalPages">Next</button>
+          <button @click="nextPage" :disabled="currentPage === totalPages">
+            Next
+          </button>
         </div>
       </div>
+
       <div class="side-panel">
         <div class="side-category">
           <h3>Top 10:</h3>
-          <button @click="activeCategory = 'gainers'" :class="{ active: activeCategory === 'gainers' }">Gainers %</button>
-          <button @click="activeCategory = 'losers'" :class="{ active: activeCategory === 'losers' }">Losers %</button>
+          <button
+            @click="activeCategory = 'gainers'"
+            :class="{ active: activeCategory === 'gainers' }"
+          >
+            Gainers %
+          </button>
+          <button
+            @click="activeCategory = 'losers'"
+            :class="{ active: activeCategory === 'losers' }"
+          >
+            Losers %
+          </button>
         </div>
+
         <div v-if="activeCategory === 'gainers'" class="side-content">
-          <SharesTable :data="gainers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" :darkTheme="darkTheme" />
+          <SharesTable
+            :data="gainers"
+            :additionalFields="['Code', 'Last', 'Change%']"
+            :isTopTen="true"
+            :darkTheme="darkTheme"
+          />
         </div>
+
         <div v-else class="side-content">
-          <SharesTable :data="losers" :additionalFields="['Code', 'Last', 'Change%']" :isTopTen="true" :darkTheme="darkTheme" />
+          <SharesTable
+            :data="losers"
+            :additionalFields="['Code', 'Last', 'Change%']"
+            :isTopTen="true"
+            :darkTheme="darkTheme"
+          />
         </div>
       </div>
     </div>
+
     <footer>
       <div class="footer-content">
         <div class="footer-left">
@@ -102,39 +168,47 @@
 </template>
 
 <script>
-import axios from 'axios';
-import SharesTable from './SharesTable.vue';
-import LoginPage from '@/views/LoginPage.vue';
-import SignupPage from '@/views/SignupPage.vue';
+import { mockSharesData } from "@/mocks/sharesMainMock.js";
+import SharesTable from "./SharesTable.vue";
+import LoginPage from "@/views/LoginPage.vue";
+import SignupPage from "@/views/SignupPage.vue";
+import axios from "axios"
 
 export default {
-  name: 'SharesPage',
+  name: "SharesPage",
   components: {
     SharesTable,
     LoginPage,
-    SignupPage
+    SignupPage, // Correct import
   },
   data() {
     return {
-      activeSection: 'price',
-      activeCategory: 'gainers',
+      activeSection: "price",
+      activeCategory: "gainers",
       logoSrc: null,
       showLogin: false,
       showSignup: false,
+      showProfileMenu: false,
       priceData: [],
       fundamentalData: [],
       gainers: [],
       losers: [],
       currentPage: 1,
       itemsPerPage: 25,
-      searchQuery: '',
+      searchQuery: "",
       suggestions: [],
-      darkTheme: false // Add theme state
+      darkTheme: false,
+      isLoggedIn: false,
+      user: null,
     };
   },
   computed: {
     totalPages() {
-      return Math.ceil((this.activeSection === 'price' ? this.priceData.length : this.fundamentalData.length) / this.itemsPerPage);
+      return Math.ceil(
+        (this.activeSection === "price"
+          ? this.priceData.length
+          : this.fundamentalData.length) / this.itemsPerPage
+      );
     },
     paginatedPriceData() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -145,148 +219,171 @@ export default {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
       return this.fundamentalData.slice(start, end);
-    }
+    },
+    userIcon() {
+      return this.user?.avatar || require("@/assets/default-user.png");
+    },
   },
   methods: {
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
+      this.logAction("Opened Login Modal");
     },
     openSignup() {
       this.showSignup = true;
       this.showLogin = false;
+      this.logAction("Opened Signup Modal");
     },
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+      this.logAction("Closed Modal");
     },
-    importLogo(src) {
-      try {
-        const images = require.context('@/assets', false, /\.(png|jpe?g|svg)$/);
-        return images(`./${src}`);
-      } catch (e) {
-        return require('@/assets/default.png');
-      }
+    toggleProfileMenu() {
+      this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
-    toggleTheme() {
-      this.darkTheme = !this.darkTheme;
-      if (this.darkTheme) {
-        document.body.classList.add('dark-theme');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.body.classList.remove('dark-theme');
-        localStorage.setItem('theme', 'light');
-      }
+    viewProfile() {
+      this.$router.push(`/profile/${this.user.username}`);
+      this.logAction('Viewing Profile');
     },
-    async fetchSharesData() {
-      try {
-        const response = {
-          data: {
-            price: [
-              { name: 'Apple', code: 'AAPL', last: 145.64, high: 147.10, low: 144.89, change: -1.23, changePercent: -0.84, volume: 74232310, time: '16:00' },
-              { name: 'Microsoft', code: 'MSFT', last: 299.35, high: 301.45, low: 298.12, change: -2.00, changePercent: -0.66, volume: 24133190, time: '16:00' },
-              // Add 38 more example price data items
-              ...Array.from({ length: 38 }, (_, i) => ({
-                name: `Company${i + 1}`,
-                code: `COMP${i + 1}`,
-                last: Math.random() * 100,
-                high: Math.random() * 100,
-                low: Math.random() * 100,
-                change: Math.random() * 10,
-                changePercent: Math.random() * 10,
-                volume: Math.floor(Math.random() * 1000000),
-                time: '16:00'
-              }))
-            ],
-            fundamental: [
-              { name: 'Apple', code: 'AAPL', marketCap: '2.41T', revenue: '365.82B', peRatio: 28.43, eps: 5.61, beta: 1.20 },
-              { name: 'Microsoft', code: 'MSFT', marketCap: '2.29T', revenue: '184.90B', peRatio: 33.84, eps: 8.05, beta: 0.91 },
-              // Add 38 more example fundamental data items
-              ...Array.from({ length: 38 }, (_, i) => ({
-                name: `Company${i + 1}`,
-                code: `COMP${i + 1}`,
-                marketCap: `${Math.random() * 1000}B`,
-                revenue: `${Math.random() * 1000}B`,
-                peRatio: Math.random() * 100,
-                eps: Math.random() * 10,
-                beta: Math.random() * 2
-              }))
-            ],
-            gainers: [
-              { code: 'TSLA', last: 620.83, changePercent: 5.23 },
-              { code: 'NVDA', last: 750.25, changePercent: 4.89 }
-            ],
-            losers: [
-              { code: 'NFLX', last: 520.23, changePercent: -3.14 },
-              { code: 'FB', last: 330.45, changePercent: -2.56 }
-            ]
-          }
-        };
-        this.priceData = response.data.price || [];
-        this.fundamentalData = response.data.fundamental || [];
-        this.gainers = response.data.gainers || [];
-        this.losers = response.data.losers || [];
-      } catch (error) {
-        console.error('Error fetching shares data:', error);
-        this.priceData = [];
-        this.fundamentalData = [];
-        this.gainers = [];
-        this.losers = [];
-      }
+    logout() {
+      this.isLoggedIn = false;
+      this.user = null;
+      this.showProfileMenu = false;
+      localStorage.removeItem("user");
+      this.logAction("User Logged Out");
+    },
+    handleLogin(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem("user", JSON.stringify(user));
+      this.showLogin = false;
+      this.logAction("User Logged In");
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem("user", JSON.stringify(user));
+      this.showSignup = false;
+      this.logAction("User Signed Up");
+    },
+    fetchSharesData() {
+      // Use mock data instead of API
+      this.priceData = mockSharesData.price || [];
+      this.fundamentalData = mockSharesData.fundamental || [];
+      this.gainers = mockSharesData.gainers || [];
+      this.losers = mockSharesData.losers || [];
+      this.logAction("Fetched Shares Data");
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        // Assuming the response has both stocks and cryptos with a 'category' field
         this.suggestions = response.data || [];
-        if (this.suggestions.length === 0) {
-          this.suggestions = [{ name: 'No matchings were found', code: '' }];
-        }
+
+        // Log action for fetching suggestions
+        this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
       }
     },
     selectSuggestion(item) {
-      if (item.code) {
+      // Check item category to route accordingly
+      if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
       }
+
       this.suggestions = [];
       this.searchQuery = '';
-    },
-    changeSection(section) {
-      this.activeSection = section;
-      this.currentPage = 1; // Reset to the first page when changing sections
+      this.logAction('Selected Suggestion', item);
     },
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
+        this.logAction("Changed Page", { page: this.currentPage });
       }
     },
     nextPage() {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
+        this.logAction("Changed Page", { page: this.currentPage });
       }
     },
     openConsole(event) {
       console.log("Console opened on right-click", event);
-    }
+      this.logAction("Opened Console", { event });
+    },
+    toggleTheme() {
+      this.darkTheme = !this.darkTheme;
+      if (this.darkTheme) {
+        document.body.classList.add("dark-theme");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.remove("dark-theme");
+        localStorage.setItem("theme", "light");
+      }
+      this.logAction("Toggled Theme", { darkTheme: this.darkTheme });
+    },
+    changeSection(section) {
+      this.activeSection = section;
+      this.logAction("Changed Section", { section: this.activeSection });
+    },
+    importLogo(src) {
+      try {
+        const images = require.context("@/assets", false, /\.(png|jpe?g|svg)$/);
+        return images(`./${src}`);
+      } catch (e) {
+        return require("@/assets/default.png");
+      }
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : "Guest",
+      };
+      console.log("Log Entry:", logEntry);
+    },
   },
   created() {
-    this.logoSrc = this.importLogo('logo.png');
+    this.logoSrc = this.importLogo("logo.png");
     this.fetchSharesData();
 
-    // Initialize theme from localStorage
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
       this.darkTheme = true;
-      document.body.classList.add('dark-theme');
+      document.body.classList.add("dark-theme");
     } else {
       this.darkTheme = false;
-      document.body.classList.remove('dark-theme');
+      document.body.classList.remove("dark-theme");
     }
-  }
+
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.logAction("Restored User Session");
+      } catch (error) {
+        console.error("Error parsing saved user data:", error);
+        localStorage.removeItem("user");
+      }
+    }
+  },
 };
 </script>
+
+
 
 <style scoped>
 .shares-page {
@@ -294,7 +391,7 @@ export default {
   flex-direction: column;
   min-height: 100vh;
   font-family: Arial, sans-serif;
-  color: #333;
+  color: #383838;
   width: 100%;
 }
 
@@ -303,7 +400,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -322,22 +419,24 @@ nav {
 }
 
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
 
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
+
 
 .content {
   display: flex;
@@ -382,20 +481,20 @@ nav a.active {
   font-size: 18px;
   cursor: pointer;
   border: none;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
   border-radius: 5px;
-  color: #000;
 }
 
 .switch-container button:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 .switch-container button.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
 }
 
 .shares-table-container {
@@ -439,9 +538,9 @@ nav a.active {
   font-size: 16px;
   cursor: pointer;
   border: none;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
   border-radius: 5px;
-    color: #000;
 }
 
 .pagination button:disabled {
@@ -450,9 +549,14 @@ nav a.active {
 }
 
 .pagination button:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
+}
+
+.pagination span {
+  margin: 0 10px; /* Adjust margin to fit better between buttons */
+  white-space: nowrap; /* Ensure the text doesn't wrap */
 }
 
 .side-panel {
@@ -494,7 +598,7 @@ nav a.active {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
@@ -512,37 +616,58 @@ nav a.active {
   background-color: #f0f0f0;
 }
 
+.side-panel {
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  color: #383838;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+}
+
+.side-category {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .side-category button {
   padding: 10px;
   cursor: pointer;
   border: none;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
   border-radius: 5px;
-    color: #000;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
 }
 
 .side-category button:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 .side-category button.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
 }
 
 .side-content {
   margin-top: 20px;
+  color: #383838;
 }
 
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
-  margin-top: auto;
 }
 
 .footer-content {
@@ -560,9 +685,13 @@ footer {
 }
 
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
 }
 
 .footer-social {
@@ -572,8 +701,12 @@ footer {
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
 }
 
 .footer-right {
@@ -584,23 +717,35 @@ footer {
 }
 
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.footer-right a:hover {
+  color: #84847C;
 }
 
 .modal {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
 }
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+}
+
 
 @media (max-width: 1200px) {
   nav {
@@ -827,6 +972,10 @@ input:checked + .slider:before {
   background-color: #1e1e1e;
 }
 
+.dark-theme span {
+  color: #c9d1d9;
+}
+
 button, a {
   color: #ffffff;
 }
@@ -834,4 +983,56 @@ button, a {
 .dark-theme button {
   color: #21262d;
 }
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+  z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
+}
+
+.profile-menu a {
+  display: block;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
+  text-decoration: none;
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+
+.profile-menu a:hover {
+  background-color: #EBEBEC;
+  color: #383838;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161b22;
+}
+
+.dark-theme .profile-menu a {
+  color: #c9d1d9;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #134B70;
+}
+
 </style>
+

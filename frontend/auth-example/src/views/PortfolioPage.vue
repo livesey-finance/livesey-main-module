@@ -28,15 +28,21 @@
           </div>
         </div>
         <div class="theme-toggle">
-        <input type="checkbox" id="theme-switch" @change="toggleTheme" :checked="darkTheme">
-        <label for="theme-switch" class="slider"></label>
-      </div>
+          <input type="checkbox" id="theme-switch" @change="toggleTheme" :checked="darkTheme">
+          <label for="theme-switch" class="slider"></label>
+        </div>
       </nav>
     </header>
     <div class="content">
-      <div class="chart-container">
-        <canvas id="portfolioChart"></canvas>
+      <div class="chart-container" @contextmenu="openContextMenu">
+      <canvas id="portfolioChart"></canvas>
+      <div v-if="showContextMenu" :style="contextMenuStyle" class="context-menu">
+        <ul>
+          <li @click="deleteItem">Delete</li>
+          <li @click="changeQuantity">Change Quantity</li>
+        </ul>
       </div>
+    </div>
       <div class="info-container">
         <h2>Your portfolio:</h2>
         <p class="yields-title">
@@ -80,21 +86,22 @@
 
     <!-- Login Modal -->
     <div v-if="showLogin" class="modal" @click.self="closeModal">
-      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="login" />
+      <LoginPage @close="closeModal" @switchToSignup="openSignup" @login="handleLogin" />
     </div>
 
     <!-- Signup Modal -->
     <div v-if="showSignup" class="modal" @click.self="closeModal">
-      <SignupPage @close="closeModal" @switchToLogin="openLogin" />
+      <SignupPage @close="closeModal" @switchToLogin="openLogin" @signup="handleSignup" />
     </div>
   </div>
 </template>
 
 <script>
+import { mockPortfolioData } from '@/mocks/portfolioMock';
 import Chart from 'chart.js/auto';
-import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
+import axios from 'axios';
 
 export default {
   name: 'PortfolioPage',
@@ -103,78 +110,59 @@ export default {
     SignupPage
   },
   data() {
-  return {
-    currency: 'USD',
-    showCurrencyList: false,
-    currencies: ['USD', 'UAH', 'PLN', 'EUR'],
-    yields: {
-      'Expected annual profitability:': '5%',
-      'Sharpe ratio:': '1.5',
-      'Sortino ratio:': '1.8',
-      'Inflation for the year:': '2%',
-      'Actual yield [%]:': '6%',
-      'Actual yield [USD]:': '600',
-      'Fixed price maximum [last year]:': '1000',
-      'Fixed price minimum [last year]:': '800',
-    },
-    totalPrice: '2000',
-    chart: null,
-    portfolioData: {
-      labels: ['NKE', 'BTC', 'AAPL', 'USDT'],
-      datasets: [{
-        data: [18, 20, 30, 18],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6384'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#FF6384']
-      }]
-    },
-    lightThemeColors: [
-      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-      '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56',
-      '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56', '#FF6384',
-      '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
-      '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
-      '#9966FF', '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB',
-      '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56',
-      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-      '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56',
-      '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56', '#FF6384'
-    ],
-    darkThemeColors: [
-      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
-      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
-      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
-      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
-      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
-      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
-      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
-      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
-      '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
-      '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1'
-    ],
-    showLogin: false,
-    showSignup: false,
-    isLoggedIn: false,
-    showProfileMenu: false,
-    userIcon: require('@/assets/default-user.png'), // Replace with actual user icon path
-    searchQuery: '',
-    suggestions: [],
-    darkTheme: false // Add darkTheme state
-  };
-},
+    return {
+      currency: 'USD',
+      showCurrencyList: false,
+      currencies: ['USD', 'UAH', 'PLN', 'EUR'],
+      yields: mockPortfolioData.yields,
+      totalPrice: mockPortfolioData.totalPrice,
+      portfolioData: mockPortfolioData.portfolioData,
+      chart: null,
+      lightThemeColors: [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56',
+        '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56', '#FF6384',
+        '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+        '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+        '#9966FF', '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB',
+        '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56',
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+        '#FF9F40', '#FFCD56', '#FF6384', '#36A2EB', '#FFCE56',
+        '#4BC0C0', '#9966FF', '#FF9F40', '#FFCD56', '#FF6384'
+      ],
+      darkThemeColors: [
+        '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+        '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+        '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+        '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+        '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+        '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+        '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+        '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1',
+        '#f94144', '#f3722c', '#f8961e', '#f9844a', '#f9c74f',
+        '#90be6d', '#43aa8b', '#4d908e', '#577590', '#277da1'
+      ],
+      showLogin: false,
+      showSignup: false,
+      isLoggedIn: false,
+      showProfileMenu: false,
+      user: null,
+      searchQuery: '',
+      suggestions: [],
+      darkTheme: false
+    };
+  },
+  computed: {
+    userIcon() {
+      return this.user?.avatar || require('@/assets/default-user.png');
+    }
+  },
   methods: {
     fetchPortfolioData() {
       setTimeout(() => {
-        this.yields = {
-          'Expected annual profitability:': '5%',
-          'Sharpe ratio:': '1.5',
-          'Sortino ratio:': '1.8',
-          'Inflation for the year:': '2%',
-          'Actual yield [%]:': '6%',
-          'Actual yield [USD]:': '600',
-          'Fixed price maximum [last year]:': '1000',
-          'Fixed price minimum [last year]:': '800',
-        };
-        this.totalPrice = '2000';
+        this.yields = mockPortfolioData.yields;
+        this.totalPrice = mockPortfolioData.totalPrice;
+        this.portfolioData = mockPortfolioData.portfolioData;
         console.log('Data fetched', this.yields, this.totalPrice);
       }, 1000);
     },
@@ -203,7 +191,7 @@ export default {
         this.chart.destroy();
       }
       const ctx = document.getElementById('portfolioChart').getContext('2d');
-      const legendColor = this.darkTheme ? '#c9d1d9' : '#000000'; // Use the desired color for the dark theme
+      const legendColor = this.darkTheme ? '#c9d1d9' : '#000000';
 
       this.chart = new Chart(ctx, {
         type: 'doughnut',
@@ -217,7 +205,7 @@ export default {
                 font: {
                   size: 25
                 },
-                color: legendColor // Set the legend label color dynamically
+                color: legendColor
               }
             }
           },
@@ -232,9 +220,11 @@ export default {
         if (this.suggestions.length === 0) {
           this.suggestions = [{ name: 'No matchings were found', code: '' }];
         }
+        this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        this.logAction('Error Fetching Suggestions', { error });
       }
     },
     selectSuggestion(item) {
@@ -243,34 +233,51 @@ export default {
       }
       this.suggestions = [];
       this.searchQuery = '';
+      this.logAction('Selected Suggestion', item);
     },
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
+      this.logAction('Opened Login Modal');
     },
     openSignup() {
       this.showSignup = true;
       this.showLogin = false;
+      this.logAction('Opened Signup Modal');
     },
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+      this.logAction('Closed Modal');
     },
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      // Navigate to profile page or show profile details
       console.log('Viewing profile');
+      this.logAction('Viewing Profile');
+    },
+    handleLogin(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showLogin = false;
+      this.logAction('User Logged In');
+    },
+    handleSignup(user) {
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.showSignup = false;
+      this.logAction('User Signed Up');
     },
     logout() {
       this.isLoggedIn = false;
+      this.user = null;
       this.showProfileMenu = false;
-      // Perform any additional logout operations, like clearing tokens
-    },
-    login() {
-      this.isLoggedIn = true;
-      this.showLogin = false;
+      localStorage.removeItem('user');
+      this.logAction('User Logged Out');
     },
     toggleTheme() {
       this.darkTheme = !this.darkTheme;
@@ -281,13 +288,23 @@ export default {
         localStorage.setItem('theme', 'light');
         document.body.classList.remove('dark-theme');
       }
-      this.updateChart(); // Update chart when theme changes
+      this.updateChart();
+      this.logAction('Toggled Theme', { darkTheme: this.darkTheme });
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest'
+      };
+      console.log('Log Entry:', logEntry);
     }
   },
   mounted() {
     this.fetchPortfolioData();
     this.updateChart();
-    // Initialize theme from localStorage
+
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkTheme = true;
@@ -296,10 +313,23 @@ export default {
       this.darkTheme = false;
       document.body.classList.remove('dark-theme');
     }
+
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.logAction('Restored User Session');
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
   },
+  
   watch: {
     darkTheme() {
-      this.updateChart(); // Update the chart when the theme changes
+      this.updateChart();
     },
     portfolioData: {
       handler() {
@@ -310,6 +340,9 @@ export default {
   }
 };
 </script>
+
+
+
 
 <style scoped>
 * {
@@ -326,8 +359,7 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fff;
-  color: #000;
+  color: #383838;
   height: 100%;
   overflow: hidden;
   font-family: Arial, sans-serif;
@@ -337,7 +369,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -346,25 +378,30 @@ header {
   height: 60px;
   max-width: 100%;
 }
+
 nav {
   display: flex;
   gap: 30px;
   margin-right: 100px;
   font-size: 22px;
 }
+
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
+
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
+
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
@@ -388,17 +425,20 @@ nav a.active {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
 
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
-  color: #333;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
+  white-space: nowrap; /* Prevents text from wrapping */
 }
 
 .profile-menu a:hover {
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
+  color: #383838;
 }
 
 .content {
@@ -421,7 +461,7 @@ nav a.active {
 .info-container {
   flex: 1;
   margin-left: 900px; 
-  color: #4f4f4f;
+  color: #383838;
   font-size: 30px;
 }
 
@@ -447,7 +487,7 @@ nav a.active {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
@@ -527,11 +567,10 @@ nav a.active {
 }
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
-  margin-top: auto;
 }
 
 .footer-content {
@@ -549,9 +588,13 @@ footer {
 }
 
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
 }
 
 .footer-social {
@@ -561,8 +604,12 @@ footer {
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
 }
 
 .footer-right {
@@ -573,11 +620,14 @@ footer {
 }
 
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
 }
 
+.footer-right a:hover {
+  color: #84847C;
+}
 
 .modal {
   position: fixed;

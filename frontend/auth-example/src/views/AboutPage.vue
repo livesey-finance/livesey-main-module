@@ -12,12 +12,12 @@
         </ul>
       </div>
       <nav>
-        <a href="/">Home</a>
-        <a href="/shares">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/calculator">Calculator</a>
-        <a href="#" class="active">About</a>
+        <router-link to="/">Home</router-link>
+        <router-link to="/shares">Shares</router-link>
+        <router-link to="/crypto">Crypto</router-link>
+        <router-link to="/portfolio">Portfolio</router-link>
+        <router-link to="/calculator">Calculator</router-link>
+        <router-link to="/about" class="active">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -143,7 +143,7 @@ export default {
       this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      console.log('Viewing profile');
+      this.$router.push(`/profile/${this.user.username}`);
       this.logAction('Viewing Profile');
     },
     logout() {
@@ -169,8 +169,14 @@ export default {
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        // Assuming the response has both stocks and cryptos with a 'category' field
         this.suggestions = response.data || [];
+
+        // Log action for fetching suggestions
         this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -179,7 +185,13 @@ export default {
       }
     },
     selectSuggestion(item) {
-      this.$router.push(`/crypto/${item.code}`);
+      // Check item category to route accordingly
+      if (item.category === 'stock') {
+        this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
+      }
+
       this.suggestions = [];
       this.searchQuery = '';
       this.logAction('Selected Suggestion', item);
@@ -258,7 +270,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -277,20 +289,21 @@ nav {
 }
 
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
 
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
@@ -351,7 +364,6 @@ main {
   overflow-x: hidden; /* Запобігання горизонтальному прокручуванню */
 }
 
-
 .section {
   margin-top: 40px;
 }
@@ -360,6 +372,7 @@ main {
   max-width: 800px;
   margin-bottom: 40px;
   font-size: 28px;
+  color: #383838;
 }
 .dark-theme .livesey p {
   color: #c9d1d9;
@@ -372,6 +385,7 @@ main {
 .livesey h2 {
   margin-bottom: 10px;
   font-size: 38px;
+  color: #383838;
 }
 
 .authors {
@@ -385,7 +399,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
   padding: 20px;
   border-radius: 10px;
   width: 120%;
@@ -405,14 +419,17 @@ main {
 
 .author-card h2 {
   margin-bottom: 20px;
+  color: #383838;
 }
 
 .author-card p {
-  margin-top: 20px;
+  margin-top: 15px;
   font-size: 22px;
+  color: #383838;
 }
 .author-card p1 {
-  margin-top: 10px;
+  margin-top: 15px;
+  color: #383838;
   font-size: 15px;
 }
 
@@ -436,14 +453,19 @@ main {
   color: #c9d1d9;
 }
 
+.social-media h2 {
+  color: #383838;
+}
+
 .social-icons {
   display: flex;
   gap: 20px;
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 .social-icons a img:hover {
-  transform: scale(1.2);
+  transition: 0.2s;
+  transform: scale(1.1);
 }
 
 .social-icons a img {
@@ -472,7 +494,7 @@ main {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
@@ -505,8 +527,8 @@ main {
 
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -526,9 +548,13 @@ footer {
 }
 
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
 }
 
 .footer-social {
@@ -538,8 +564,12 @@ footer {
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
 }
 
 .footer-right {
@@ -550,9 +580,13 @@ footer {
 }
 
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.footer-right a:hover {
+  color: #84847C;
 }
 
 /* Dark Theme Styles */
@@ -662,17 +696,20 @@ footer {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
 
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
-  color: #333;
+  white-space: nowrap; /* Prevents text from wrapping */
 }
 
 .profile-menu a:hover {
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
 }
 
 .dark-theme .profile-menu {

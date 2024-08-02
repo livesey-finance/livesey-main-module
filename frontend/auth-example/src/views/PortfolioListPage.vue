@@ -12,12 +12,12 @@
         </ul>
       </div>
       <nav>
-        <a href="/">Home</a>
-        <a href="/shares">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio" class="active">Portfolio</a>
-        <a href="/calculator">Calculator</a>
-        <a href="/about">About</a>
+        <router-link to="/">Home</router-link>
+        <router-link to="/shares">Shares</router-link>
+        <router-link to="/crypto">Crypto</router-link>
+        <router-link to="/portfolio" class="active">Portfolio</router-link>
+        <router-link to="/calculator">Calculator</router-link>
+        <router-link to="/about">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -27,23 +27,26 @@
             <a @click="logout">Log Out</a>
           </div>
         </div>
-        <div class="theme-toggle">
-          <input type="checkbox" id="theme-switch" @change="toggleTheme" :checked="darkTheme">
-          <label for="theme-switch" class="slider"></label>
-        </div>
+        <label class="theme-toggle">
+          <input type="checkbox" @change="toggleTheme" :checked="darkTheme" />
+          <span class="slider"></span>
+        </label>
       </nav>
     </header>
-
-    <main>
+    <transition name="fade" mode="out-in">
+      <router-view />
+    </transition>
+    <main class="main-container">
       <div class="portfolio-actions-container">
         <h1>User Portfolios</h1>
-        <button @click="openPortfolioForm" :disabled="portfolios.length >= 10">
+        <button @click="checkLoginStatus" :disabled="portfolios.length >= 15">
           Add Portfolio
         </button>
+        <div v-if="portfolios.length >= 15" class="limit-message">You have reached the maximum limit of 15 portfolios.</div>
       </div>
 
       <div class="portfolio-list">
-        <div v-for="portfolio in portfolios" :key="portfolio.username" class="portfolio-item">
+        <div v-for="portfolio in paginatedPortfolios" :key="portfolio.username" class="portfolio-item">
           <div class="portfolio-info" @click="openPortfolio(portfolio)">
             <h3>{{ portfolio.name }}</h3>
             <p>{{ portfolio.description }}</p>
@@ -55,8 +58,25 @@
         </div>
       </div>
 
+      <!-- Pagination controls -->
+      <div class="pagination">
+        <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">Previous</button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">Next</button>
+      </div>
+
       <div v-if="showPortfolioForm" class="modal" @click.self="closePortfolioForm">
         <PortfolioForm @close="closePortfolioForm" @add="addPortfolio" />
+      </div>
+
+      <!-- Modal for managing stocks in a portfolio -->
+      <div v-if="showStockModal" class="modal" @click.self="closeStockModal">
+        <PortfolioStockModal 
+          :show="showStockModal" 
+          :isInPortfolio="isInPortfolio" 
+          :portfolios="portfolios" 
+          @confirm="handleStockAction" 
+          @close="closeStockModal" />
       </div>
 
       <div v-if="error" class="error">{{ error }}</div>
@@ -97,45 +117,83 @@
 
 <script>
 import PortfolioForm from "@/components/PortfolioForm.vue";
+import PortfolioStockModal from "@/components/PortfolioStockModal.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import SignupPage from "@/views/SignupPage.vue";
-import { getPortfolios, addPortfolio, updatePortfolio, deletePortfolio } from "@/mocks/portfolioListVue.js";
+import { getPortfolios, addPortfolio as mockAddPortfolio, updatePortfolio as mockUpdatePortfolio, deletePortfolio as mockDeletePortfolio } from "@/mocks/portfolioListVue.js";
+import axios from 'axios';
 
 export default {
   name: "PortfolioListPage",
   components: {
     PortfolioForm,
+    PortfolioStockModal,
     LoginPage,
     SignupPage
   },
   data() {
     return {
       portfolios: [],
+      currentPage: 1,
+      portfoliosPerPage: 5,
       showPortfolioForm: false,
+      showStockModal: false,
+      selectedPortfolio: null,
       error: null,
       showLogin: false,
       showSignup: false,
       isLoggedIn: false,
       showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'),
       searchQuery: '',
       suggestions: [],
       darkTheme: false,
-      user: null
+      user: null,
     };
+  },
+  computed: {
+    userIcon() {
+      return this.user?.avatar || require('@/assets/default-user.png');
+    },
+    totalPages() {
+      return Math.ceil(this.portfolios.length / this.portfoliosPerPage);
+    },
+    paginatedPortfolios() {
+      const start = (this.currentPage - 1) * this.portfoliosPerPage;
+      const end = start + this.portfoliosPerPage;
+      return this.portfolios.slice(start, end);
+    },
   },
   methods: {
     async loadPortfolios() {
       try {
-        // Симулюємо отримання портфоліо з бекенду
-        this.portfolios = await getPortfolios();
+        if (this.isLoggedIn) {
+          const savedPortfolios = localStorage.getItem('portfolios');
+          if (savedPortfolios) {
+            this.portfolios = JSON.parse(savedPortfolios);
+          } else {
+            this.portfolios = await getPortfolios();
+            localStorage.setItem('portfolios', JSON.stringify(this.portfolios));
+          }
+        } else {
+          this.portfolios = [];
+        }
       } catch (error) {
         this.error = "Failed to load portfolios.";
         console.error("Error loading portfolios:", error);
       }
     },
+    savePortfolios() {
+      localStorage.setItem('portfolios', JSON.stringify(this.portfolios));
+    },
     openPortfolio(portfolio) {
       this.$router.push(`/portfolio/${portfolio.username}`);
+    },
+    checkLoginStatus() {
+      if (this.isLoggedIn) {
+        this.openPortfolioForm();
+      } else {
+        this.error = "You must be logged in to add a portfolio.";
+      }
     },
     openPortfolioForm() {
       this.showPortfolioForm = true;
@@ -143,13 +201,44 @@ export default {
     closePortfolioForm() {
       this.showPortfolioForm = false;
     },
-    async addPortfolio(newPortfolio) {
+    openPortfolioStockModal(portfolio) {
+      this.selectedPortfolio = portfolio;
+      this.showStockModal = true;
+    },
+    closeStockModal() {
+      this.selectedPortfolio = null;
+      this.showStockModal = false;
+    },
+    async handleStockAction({ portfolioId, quantity }) {
       try {
-        await addPortfolio(newPortfolio);
-        // Після успішного додавання нове портфоліо не додаємо вручну до масиву `portfolios`
-        await this.loadPortfolios(); // Замість цього оновлюємо список портфоліо
-        this.closePortfolioForm();
-        this.error = null;
+        console.log(`Updating portfolio ${portfolioId} with quantity ${quantity}`);
+        await this.loadPortfolios();
+        this.closeStockModal();
+      } catch (error) {
+        console.error("Error updating stocks:", error);
+        this.error = "Failed to update stocks.";
+      }
+    },
+    goToPage(pageNumber) {
+      if (pageNumber >= 1 && pageNumber <= this.totalPages) {
+        this.currentPage = pageNumber;
+      }
+    },
+    async addPortfolio(newPortfolio) {
+      if (this.portfolios.length >= 15) {
+        this.error = "You have reached the maximum limit of 15 portfolios.";
+        return;
+      }
+      try {
+        if (this.isLoggedIn) {
+          const addedPortfolio = await mockAddPortfolio(newPortfolio);
+          this.portfolios.push(addedPortfolio);
+          this.savePortfolios();
+          this.closePortfolioForm();
+          this.error = null;
+        } else {
+          this.error = "You must be logged in to add a portfolio.";
+        }
       } catch (error) {
         console.error("Error adding portfolio:", error);
         this.error = "Failed to add portfolio";
@@ -159,26 +248,38 @@ export default {
       const newName = prompt("Enter new portfolio name:", portfolio.name);
       if (newName) {
         try {
-          const updatedPortfolio = await updatePortfolio(portfolio.username, { name: newName });
+          const updatedPortfolio = await mockUpdatePortfolio(portfolio.username, { name: newName });
           const index = this.portfolios.findIndex(p => p.username === portfolio.username);
           if (index !== -1) {
             this.portfolios.splice(index, 1, updatedPortfolio);
+            this.savePortfolios();
           }
         } catch (error) {
           console.error("Error renaming portfolio:", error);
-          this.error = "Failed to rename portfolio";
+          this.error = "Failed to rename portfolio: " + error.message;
         }
       }
     },
     async deletePortfolio(portfolio) {
+      // Verify the portfolio exists in the local state before attempting to delete
+      const portfolioIndex = this.portfolios.findIndex(p => p.username === portfolio.username);
+      if (portfolioIndex === -1) {
+        this.error = "Portfolio not found in local state.";
+        return;
+      }
+
       try {
-        await deletePortfolio(portfolio.username);
-        this.portfolios = this.portfolios.filter(
-          (p) => p.username !== portfolio.username
-        );
+        // Attempt to delete the portfolio from the backend
+        await mockDeletePortfolio(portfolio.username);
+        
+        // Remove the portfolio from the local state if the backend deletion was successful
+        this.portfolios.splice(portfolioIndex, 1);
+        this.savePortfolios();
+        this.error = null; // Clear any previous error messages
+
       } catch (error) {
         console.error("Error deleting portfolio:", error);
-        this.error = "Failed to delete portfolio";
+        this.error = "Failed to delete portfolio: " + error.message;
       }
     },
     toggleTheme() {
@@ -205,49 +306,77 @@ export default {
     },
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      console.log('Viewing profile');
+      this.$router.push(`/profile/${this.user.username}`);
+      this.logAction('Viewing Profile');
     },
     logout() {
       this.isLoggedIn = false;
-      this.user = null; // Clear user information on logout
+      this.user = null;
       this.showProfileMenu = false;
-      // Perform any additional logout operations, like clearing tokens
+      localStorage.removeItem('user');
+      localStorage.removeItem('portfolios');
+      this.logAction('User Logged Out');
+      this.loadPortfolios(); // Clear portfolios upon logging out
     },
     handleLogin(user) {
       this.isLoggedIn = true;
-      this.user = user || {}; // Ensure user is an object
-      this.userIcon = this.user.avatar || require('@/assets/default-user.png'); // Set user icon
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
       this.showLogin = false;
+      this.error = null; // Clear any error messages upon successful login
+      this.userIcon = this.user.avatar || require('@/assets/default-user.png');
+      this.logAction('User Logged In');
+      this.loadPortfolios(); // Load portfolios after logging in
     },
     handleSignup(user) {
       this.isLoggedIn = true;
-      this.user = user || {}; // Ensure user is an object
-      this.userIcon = this.user.avatar || require('@/assets/default-user.png'); // Set user icon
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
       this.showSignup = false;
+      this.error = null; // Clear any error messages upon successful signup
+      this.userIcon = this.user.avatar || require('@/assets/default-user.png');
+      this.logAction('User Signed Up');
+      this.loadPortfolios(); // Load portfolios after signing up
     },
     async fetchSuggestions() {
       try {
-        // Симулюємо отримання пропозицій
-        this.suggestions = this.portfolios.filter(p => 
-          p.name.toLowerCase().includes(this.searchQuery.toLowerCase())
-        );
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        this.suggestions = response.data || [];
+        this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
       }
     },
     selectSuggestion(item) {
-      if (item.username) {
-        this.$router.push(`/portfolio/${item.username}`);
+      if (item.category === 'stock') {
+        this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
       }
+
       this.suggestions = [];
       this.searchQuery = '';
+      this.logAction('Selected Suggestion', item);
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest'
+      };
+      console.log('Log Entry:', logEntry);
     }
   },
   mounted() {
-    this.loadPortfolios();
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkTheme = true;
@@ -255,6 +384,22 @@ export default {
     } else {
       this.darkTheme = false;
       document.body.classList.remove('dark-theme');
+    }
+
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.userIcon = this.user.avatar || require('@/assets/default-user.png');
+        this.logAction('Restored User Session');
+        this.loadPortfolios(); // Load portfolios if the user is logged in
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('user');
+      }
+    } else {
+      this.loadPortfolios(); // Clear portfolios if no user is logged in
     }
   }
 };
@@ -271,59 +416,78 @@ html, body {
   width: 100%;
   overflow-x: hidden;
 }
+.app-container {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+
 .portfolio-list-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fff;
-  color: #000;
-  min-height: 100vh; /* Use min-height to ensure it takes the full height */
   font-family: Arial, sans-serif;
+  color: #383838;
+  min-height: 100vh; /* Use min-height to ensure it takes the full height */
 }
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
+
 .logo {
   margin-left: 30px;
   height: 60px;
   max-width: 100%;
 }
+
 nav {
   display: flex;
   gap: 30px;
   margin-right: 100px;
   font-size: 22px;
 }
+
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
+
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
+
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
+
+
 .user-profile {
   position: relative;
   cursor: pointer;
 }
+
 .user-profile img {
   height: 40px;
   width: 40px;
   border-radius: 50%;
 }
+
 .profile-menu {
   position: absolute;
   top: 100%;
@@ -333,25 +497,31 @@ nav a.active {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
+
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
-  color: #333;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
+  white-space: nowrap; /* Prevents text from wrapping */
 }
+
 .profile-menu a:hover {
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
+  color: #383838;
 }
+
 main {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   width: 100%;
   flex: 1; /* Allow main to grow and take available space */
   overflow-y: auto;
   overflow-x: hidden;
+  margin-top: 15px; /* Add margin-top to create space below nav */
 }
 .portfolio-actions-container {
   display: flex;
@@ -361,12 +531,36 @@ main {
   padding: 20px;
   max-width: 800px;
 }
+
+.portfolio-actions-container button {
+  padding: 10px 40px;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  color: #383838;
+  background-color: #EBEBEC;
+  border-radius: 5px;
+}
+
+.portfolio-actions-container button:hover {
+  background-color: #383838;
+  color: #EBEBEC;
+  transition: 0.2s;
+}
+
+.portfolio-actions-container button.active {
+  background-color: #383838;
+  color: #EBEBEC;
+  transition: 0.2s;
+}
+
 .portfolio-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
   max-width: 800px;
+  margin-top: -10px;
 }
 .portfolio-item {
   display: flex;
@@ -376,13 +570,59 @@ main {
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out; /* Apply transition to the default state */
 }
+
+.portfolio-item:hover {
+  transform: scale(1.03);
+}
+
 .portfolio-info {
   cursor: pointer;
 }
+
+.dark-theme .portfolio-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #161b22;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.dark-theme .portfolio-info {
+  cursor: pointer;
+}
+
 .portfolio-actions button {
   margin-left: 10px;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  color: #383838;
+  background-color: #EBEBEC;
+  border-radius: 5px;
 }
+
+.dark-theme .portfolio-actions button {
+  color: #333;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+.portfolio-actions button:hover {
+  background-color: #383838;
+  color: #EBEBEC;
+  transition: 0.2s;
+}
+
+.portfolio-actions button.active {
+  background-color: #383838;
+  color: #EBEBEC;
+  transition: 0.2s;
+}
+
 .search-container {
   display: flex;
   align-items: center;
@@ -403,7 +643,7 @@ main {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
@@ -436,11 +676,12 @@ main {
 }
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
 }
+
 .footer-content {
   display: flex;
   justify-content: space-between;
@@ -448,35 +689,53 @@ footer {
   width: 100%;
   flex-wrap: wrap;
 }
+
 .footer-left {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
+
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
 }
+
+.footer-logo:hover {
+  color: #84847C;
+}
+
 .footer-social {
   display: flex;
   gap: 20px;
   margin-top: 10px;
 }
+
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
 }
+
+.footer-social a:hover {
+  color: #84847C;
+}
+
 .footer-right {
   display: flex;
   gap: 20px;
   margin-top: 10px;
   flex-wrap: wrap;
 }
+
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.footer-right a:hover {
+  color: #84847C;
 }
 /* Dark Theme Styles */
 .dark-theme {
@@ -560,5 +819,91 @@ input:checked + .slider {
 }
 input:checked + .slider:before {
   transform: translateX(20px);
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .logo {
+    margin-left: 0;
+    height: 50px;
+  }
+  
+  nav {
+    flex-wrap: wrap;
+    margin-right: 0;
+    font-size: 18px;
+  }
+  
+  .search-container {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  
+  .search-container input {
+    width: 100%;
+  }
+  
+  .portfolio-actions-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .portfolio-list {
+    width: 100%;
+  }
+  
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .footer-right {
+    margin-top: 10px;
+  }
+}
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap; /* Ensure items don't wrap to new lines */
+}
+
+.pagination button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  background-color: #EBEBEC;
+  color: #383838;
+  border-radius: 5px;
+  white-space: nowrap; /* Prevent text from wrapping inside buttons */
+  display: flex;
+  align-items: center; /* Center content vertically */
+  justify-content: center; /* Center content horizontally */
+}
+
+.pagination button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.pagination button:hover {
+  background-color: #7c7c7c;
+  color: #EBEBEC;
+  transition: 0.2s;
+}
+
+.limit-message {
+  color: red;
+  margin-top: 10px;
+  margin-left: 20px;
+  font-weight: bold;
 }
 </style>

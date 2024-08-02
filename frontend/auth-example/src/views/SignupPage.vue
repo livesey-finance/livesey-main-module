@@ -108,7 +108,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -122,15 +122,18 @@ export default {
   right: 10px;
   font-size: 24px;
   cursor: pointer;
+  color: #383838;
+}
+.close-button:hover {
+  color: #84847C;
 }
 .logo {
   margin-bottom: 0px;
   max-width: 200px;
-}
-
-.logo:hover {
-  transform: scale(1.2);
   transition: 0.2s;
+}
+.logo:hover {
+  transform: scale(1.1);
 }
 .auth-input {
   width: 300px;
@@ -138,8 +141,8 @@ export default {
   margin-bottom: 20px;
   border: none;
   border-radius: 8px;
-  background-color: #c4c4c4;
-  color: #4f4f4f;
+  background-color: #FBF9FB;
+  color: #383838;
   font-size: 16px;
   box-sizing: border-box;
 }
@@ -154,28 +157,42 @@ export default {
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 16px;
-  color: #4f4f4f;
+  color: #383838;
 }
 button {
   width: 300px;
   padding: 15px;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
 }
 button:hover {
-  background-color: #c4c4c4;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
 }
 p {
   margin-top: 20px;
   cursor: pointer;
-  color: #4f4f4f;
+  color: #383838;
+}
+p:hover {
+  color: #84847C;
 }
 h2 {
-  color: #4f4f4f;
+  color: #383838;
+}
+
+.google-auth {
+  margin-top: 2px;
+  cursor: pointer;
+  color: #383838;
+  text-align: center;
+}
+.google-auth:hover {
+  color: #84847C;
 }
 @media (max-width: 480px) {
   .auth-input, .password-container, button {
@@ -207,12 +224,6 @@ h2 {
     opacity: 0;
     transform: translateY(-20px);
   }
-}
-.google-auth {
-  margin-top: 2px;
-  cursor: pointer;
-  color: #4f4f4f;
-  text-align: center;
 }
 
 .dark-theme .logo {

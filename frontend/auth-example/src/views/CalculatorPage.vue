@@ -12,12 +12,12 @@
         </ul>
       </div>
       <nav>
-        <a href="/">Home</a>
-        <a href="/shares">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="#" class="active">Calculator</a>
-        <a href="/about">About</a>
+        <router-link to="/">Home</router-link>
+        <router-link to="/shares">Shares</router-link>
+        <router-link to="/crypto">Crypto</router-link>
+        <router-link to="/portfolio">Portfolio</router-link>
+        <router-link to="/calculator" class="active">Calculator</router-link>
+        <router-link to="/about">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -128,29 +128,29 @@ export default {
     SignupPage
   },
   created() {
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark') {
-    this.darkTheme = true;
-    document.body.classList.add('dark-theme');
-  } else {
-    this.darkTheme = false;
-    document.body.classList.remove('dark-theme');
-  }
-
-  const savedUser = localStorage.getItem('user');
-  if (savedUser) {
-    try {
-      this.user = JSON.parse(savedUser);
-      this.isLoggedIn = true;
-      this.logAction('Restored User Session');
-    } catch (error) {
-      console.error('Error parsing saved user data:', error);
-      localStorage.removeItem('user'); // Clear corrupted data
-      this.user = null;
-      this.isLoggedIn = false;
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      this.darkTheme = true;
+      document.body.classList.add('dark-theme');
+    } else {
+      this.darkTheme = false;
+      document.body.classList.remove('dark-theme');
     }
-  }
-},
+
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.logAction('Restored User Session');
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('user'); // Clear corrupted data
+        this.user = null;
+        this.isLoggedIn = false;
+      }
+    }
+  },
   data() {
     return {
       formulas: [
@@ -226,8 +226,9 @@ export default {
     };
   },
   computed: {
+    // If the user has a custom avatar, display it
     userIcon() {
-      return this.getUser?.avatar || require('@/assets/default-user.png');
+      return this.user?.avatar || require('@/assets/default-user.png');
     },
   },
   methods: {
@@ -250,107 +251,137 @@ export default {
     },
     calculateFormula() {
       const inputValues = this.formulaInputs.map(input => input.value);
-      if (this.formulaInputs.some(input => input.error) || inputValues.some(value => value === 0)) {
+      if (this.formulaInputs.some(input => input.error) || inputValues.some(value => value === 0 || value === null || value === '')) {
         this.result = "Invalid data or division by zero";
         return;
       }
-      switch (this.selectedFormula) {
-        case 'debtEquity':
-          this.result = calculateDebtEquity(...inputValues);
-          break;
-        case 'ltDebtEquity':
-          this.result = calculateLTDebtEquity(...inputValues);
-          break;
-        case 'eps':
-          this.result = calculateEPS(...inputValues);
-          break;
-        case 'roa':
-          this.result = calculateROA(...inputValues);
-          break;
-        case 'roe':
-          this.result = calculateROE(...inputValues);
-          break;
-        case 'roi':
-          this.result = calculateROI(...inputValues);
-          break;
-        case 'currentRatio':
-          this.result = calculateCurrentRatio(...inputValues);
-          break;
-        case 'quickRatio':
-          this.result = calculateQuickRatio(...inputValues);
-          break;
-        case 'cashRatio':
-          this.result = calculateCashRatio(...inputValues);
-          break;
-        case 'nwcPercentageRevenue':
-          this.result = calculateNWCPercentageRevenue(...inputValues);
-          break;
-        case 'netDebt':
-          this.result = calculateNetDebt(...inputValues);
-          break;
-        case 'pe':
-          this.result = calculatePE(...inputValues);
-          break;
-        case 'forwardPE':
-          this.result = calculateForwardPE(...inputValues);
-          break;
-        case 'peg':
-          this.result = calculatePEG(...inputValues);
-          break;
-        case 'ps':
-          this.result = calculatePS(...inputValues);
-          break;
-        case 'pb':
-          this.result = calculatePB(...inputValues);
-          break;
-        case 'pc':
-          this.result = calculatePC(...inputValues);
-          break;
-        case 'pfcf':
-          this.result = calculatePFCF(...inputValues);
-          break;
-        case 'cape':
-          this.result = calculateCAPE(...inputValues);
-          break;
-        case 'ev':
-          this.result = calculateEV(...inputValues);
-          break;
-        case 'evToEbitda':
-          this.result = calculateEVtoEBITDA(...inputValues);
-          break;
-        case 'evCFO':
-          this.result = calculateEVCFO(...inputValues);
-          break;
-        case 'evFCFF':
-          this.result = calculateEVFCFF(...inputValues);
-          break;
-        default:
-          this.result = 'Invalid formula';
-          break;
+      try {
+        switch (this.selectedFormula) {
+          case 'debtEquity':
+            this.result = calculateDebtEquity(...inputValues);
+            break;
+          case 'ltDebtEquity':
+            this.result = calculateLTDebtEquity(...inputValues);
+            break;
+          case 'eps':
+            this.result = calculateEPS(...inputValues);
+            break;
+          case 'roa':
+            this.result = calculateROA(...inputValues);
+            break;
+          case 'roe':
+            this.result = calculateROE(...inputValues);
+            break;
+          case 'roi':
+            this.result = calculateROI(...inputValues);
+            break;
+          case 'currentRatio':
+            this.result = calculateCurrentRatio(...inputValues);
+            break;
+          case 'quickRatio':
+            this.result = calculateQuickRatio(...inputValues);
+            break;
+          case 'cashRatio':
+            this.result = calculateCashRatio(...inputValues);
+            break;
+          case 'nwcPercentageRevenue':
+            this.result = calculateNWCPercentageRevenue(...inputValues);
+            break;
+          case 'netDebt':
+            this.result = calculateNetDebt(...inputValues);
+            break;
+          case 'pe':
+            this.result = calculatePE(...inputValues);
+            break;
+          case 'forwardPE':
+            this.result = calculateForwardPE(...inputValues);
+            break;
+          case 'peg':
+            this.result = calculatePEG(...inputValues);
+            break;
+          case 'ps':
+            this.result = calculatePS(...inputValues);
+            break;
+          case 'pb':
+            this.result = calculatePB(...inputValues);
+            break;
+          case 'pc':
+            this.result = calculatePC(...inputValues);
+            break;
+          case 'pfcf':
+            this.result = calculatePFCF(...inputValues);
+            break;
+          case 'cape':
+            this.result = calculateCAPE(...inputValues);
+            break;
+          case 'ev':
+            this.result = calculateEV(...inputValues);
+            break;
+          case 'evToEbitda':
+            this.result = calculateEVtoEBITDA(...inputValues);
+            break;
+          case 'evCFO':
+            this.result = calculateEVCFO(...inputValues);
+            break;
+          case 'evFCFF':
+            this.result = calculateEVFCFF(...inputValues);
+            break;
+          default:
+            this.result = 'Invalid formula';
+            break;
+        }
+      } catch (error) {
+        this.result = "Calculation error: " + error.message;
       }
     },
     validateInput(index) {
       const input = this.formulaInputs[index];
-      input.error = isNaN(input.value) || input.value === null;
+      input.error = isNaN(input.value) || input.value === null || input.value === '';
+    },
+    checkNumberInput(event) {
+      // Allow only number keys, backspace, delete, and navigation keys
+      if (
+        !(
+          event.key >= '0' && event.key <= '9' ||
+          event.key === 'Backspace' ||
+          event.key === 'Delete' ||
+          event.key === 'ArrowLeft' ||
+          event.key === 'ArrowRight' ||
+          event.key === 'Tab' ||
+          event.key === '.' // allow decimal point
+        )
+      ) {
+        event.preventDefault();
+      }
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        // Assuming the response has both stocks and cryptos with a 'category' field
         this.suggestions = response.data || [];
-        if (this.suggestions.length === 0) {
-          this.suggestions = [{ name: 'No matchings were found', code: '' }];
-        }
+
+        // Log action for fetching suggestions
+        this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+        this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
       }
     },
     selectSuggestion(item) {
-      if (item.code) {
+      // Check item category to route accordingly
+      if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
       }
+
       this.suggestions = [];
       this.searchQuery = '';
+      this.logAction('Selected Suggestion', item);
     },
     openLogin() {
       this.showLogin = true;
@@ -372,7 +403,7 @@ export default {
       this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      console.log('Viewing profile');
+      this.$router.push(`/profile/${this.user.username}`);
       this.logAction('Viewing Profile');
     },
     logout() {
@@ -490,6 +521,7 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .calculator-container {
   display: flex;
@@ -505,7 +537,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -524,22 +556,24 @@ nav {
 }
 
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
 
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
+
 
 .user-profile {
   position: relative;
@@ -561,21 +595,25 @@ nav a.active {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
 
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
-  color: #333;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
+  white-space: nowrap; /* Prevents text from wrapping */
 }
 
 .profile-menu a:hover {
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
+  color: #383838;
 }
 
 h2 {
   font-size: 1.7em;
+  color: #383838;
 }
 
 .content {
@@ -585,6 +623,7 @@ h2 {
   align-items: center;
   margin-top: 20px;
   flex-grow: 1;
+  color: #383838;
 }
 
 .calculator {
@@ -597,6 +636,7 @@ h2 {
   background-color: #f4f4f4;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: #383838;
 }
 
 .formula-selector,
@@ -612,7 +652,7 @@ h2 {
   box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background-color: #fff;
+  background-color: #FBF9FB;
   font-size: 1.0em;
 }
 
@@ -628,39 +668,46 @@ h2 {
   box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 4px;
+  color: #383838;
+  font-size: 1.0em;
 }
 
 button {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   font-size: 16px;
   padding: 10px;
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  outline: none;
 }
 
 button:hover {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 h3 {
   margin-top: 20px;
+  color: #383838;
 }
 
 .formula-header {
   font-weight: bold;
   font-size: 1.7em;
   margin-top: 30px;
+  color: #383838;
 }
 
 .formula-description {
   margin-top: 20px;
   font-size: 1.4em;
-  color: #555;
+  color: #383838;
 }
 
 .error-message {
@@ -670,11 +717,10 @@ h3 {
 
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
-  margin-top: auto;
 }
 
 .footer-content {
@@ -692,9 +738,13 @@ footer {
 }
 
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
 }
 
 .footer-social {
@@ -704,8 +754,12 @@ footer {
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
 }
 
 .footer-right {
@@ -716,9 +770,13 @@ footer {
 }
 
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.footer-right a:hover {
+  color: #84847C;
 }
 
 .search-container {
@@ -743,7 +801,7 @@ footer {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
@@ -977,28 +1035,6 @@ input:checked + .slider:before {
   height: 40px;
   border-radius: 50%;
   cursor: pointer;
-}
-
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  overflow: hidden;
-  z-index: 1000;
-}
-
-.profile-menu a {
-  display: block;
-  padding: 10px 20px;
-  text-decoration: none;
-  color: #333;
-}
-
-.profile-menu a:hover {
-  background-color: #f0f0f0;
 }
 
 .dark-theme .profile-menu {

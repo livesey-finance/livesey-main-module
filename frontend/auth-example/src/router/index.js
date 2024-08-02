@@ -1,71 +1,66 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import LoginPage from '@/views/LoginPage.vue';
-import SignupPage from '@/views/SignupPage.vue';
-import PortfolioPage from '@/views/PortfolioPage.vue';
-import PortfolioListPage from '@/views/PortfolioListPage.vue';
-import SharesPage from '@/views/SharesPage.vue';
-import SharesMainPage from '@/views/SharesMainPage.vue';
-import CryptoPage from '@/views/CryptoPage.vue';
-import CryptoMainPage from '@/views/CryptoMainPage.vue';
-import CalculatorPage from '@/views/CalculatorPage.vue';
-import HomePage from '@/views/HomePage.vue';
-import AboutPage from '@/views/AboutPage.vue';
 
 const routes = [
   {
     path: '/login',
     name: 'login',
-    component: LoginPage,
+
+    component: () => import('@/views/LoginPage.vue') 
   },
   {
     path: '/signup',
     name: 'signup',
-    component: SignupPage,
+    component: () => import('@/views/SignupPage.vue') 
   },
   {
     path: '/portfolio',
     name: 'portfolio-list',
-    component: PortfolioListPage,
+    component: () => import('@/views/PortfolioListPage.vue') 
   },
   {
     path: '/portfolio/:username',
     name: 'portfolio-detail',
-    component: PortfolioPage,
+    component: () => import('@/views/PortfolioPage.vue') 
   },
   {
     path: '/shares/:code',
     name: 'shares',
-    component: SharesPage,
+    component: () => import('@/views/SharesPage.vue') 
   },
   {
     path: '/shares',
     name: 'shares-main-page',
-    component: SharesMainPage,
+    component: () => import('@/views/SharesMainPage.vue') 
   },
   {
     path: '/crypto/:code',
     name: 'crypto',
-    component: CryptoPage,
+    component: () => import('@/views/CryptoPage.vue') 
   },
   {
     path: '/crypto',
     name: 'crypto-main-page',
-    component: CryptoMainPage,
+    component: () => import('@/views/CryptoMainPage.vue') 
   },
   {
     path: '/calculator',
     name: 'calculator',
-    component: CalculatorPage,
+    component: () => import('@/views/CalculatorPage.vue') 
   },
   {
     path: '/',
     name: 'home',
-    component: HomePage,
+    component: () => import('@/views/HomePage.vue') 
   },
   {
     path: '/about',
     name: 'about',
-    component: AboutPage,
+    component: () => import('@/views/AboutPage.vue') 
+  },
+  {
+    path: '/profile/:userId',
+    name: 'Profile',
+    component: () => import('@/views/Profile.vue')
   },
 ];
 

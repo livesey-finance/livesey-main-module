@@ -12,12 +12,12 @@
         </ul>
       </div>
       <nav>
-        <a href="/">Home</a>
-        <a href="/shares">Shares</a>
-        <a href="#" class="active">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/calculator">Calculator</a>
-        <a href="/about">About</a>
+        <router-link to="/">Home</router-link>
+        <router-link to="/shares">Shares</router-link>
+        <router-link to="/crypto" class="active">Crypto</router-link>
+        <router-link to="/portfolio">Portfolio</router-link>
+        <router-link to="/calculator">Calculator</router-link>
+        <router-link to="/about">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -99,17 +99,18 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mockCryptoData } from '@/mocks/cryptoMainMock';
 import CryptoTable from './CryptoTable.vue';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
+import axios from 'axios';
 
 export default {
   name: 'CryptoPage',
   components: {
     CryptoTable,
     LoginPage,
-    SignupPage
+    SignupPage,
   },
   data() {
     return {
@@ -120,17 +121,16 @@ export default {
       showSignup: false,
       isLoggedIn: false,
       showProfileMenu: false,
-      userIcon: require('@/assets/default-user.png'), // Замість з правильним шляхом до іконки користувача
+      cryptoData: mockCryptoData,
       priceData: [],
-      cryptoData: [], // Added cryptoData
       gainers: [],
       losers: [],
       currentPage: 1,
       itemsPerPage: 25,
       searchQuery: '',
       suggestions: [],
-      darkTheme: false, // Add theme state
-      user: null // Додаємо змінну для зберігання інформації про користувача
+      darkTheme: false,
+      user: null,
     };
   },
   computed: {
@@ -141,7 +141,10 @@ export default {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
       return this.priceData.slice(start, end);
-    }
+    },
+    userIcon() {
+      return this.user?.avatar || require('@/assets/default-user.png');
+    },
   },
   methods: {
     openLogin() {
@@ -164,36 +167,40 @@ export default {
       this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      // Navigate to profile page or show profile details
-      console.log('Viewing profile');
+      this.$router.push(`/profile/${this.user.username}`);
       this.logAction('Viewing Profile');
     },
     logout() {
       this.isLoggedIn = false;
-      this.user = null; // Видаляємо інформацію про користувача при логауті
+      this.user = null;
       this.showProfileMenu = false;
       localStorage.removeItem('user');
       this.logAction('User Logged Out');
-      // Perform any additional logout operations, like clearing tokens
     },
     handleLogin(user) {
       this.isLoggedIn = true;
-      this.user = user; // Зберігаємо інформацію про користувача
+      this.user = user;
       localStorage.setItem('user', JSON.stringify(user));
       this.showLogin = false;
       this.logAction('User Logged In');
     },
     handleSignup(user) {
       this.isLoggedIn = true;
-      this.user = user; // Зберігаємо інформацію про користувача
+      this.user = user;
       localStorage.setItem('user', JSON.stringify(user));
       this.showSignup = false;
       this.logAction('User Signed Up');
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, { params: { query: this.searchQuery } });
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        // Assuming the response has both stocks and cryptos with a 'category' field
         this.suggestions = response.data || [];
+
+        // Log action for fetching suggestions
         this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -202,7 +209,13 @@ export default {
       }
     },
     selectSuggestion(item) {
-      this.$router.push(`/crypto/${item.code}`);
+      // Check item category to route accordingly
+      if (item.category === 'stock') {
+        this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
+      }
+
       this.suggestions = [];
       this.searchQuery = '';
       this.logAction('Selected Suggestion', item);
@@ -217,76 +230,38 @@ export default {
     },
     async fetchSharesData() {
       try {
+        // Simulate fetching shares data
         const response = {
           data: {
             price: [
-              { name: 'Apple', code: 'AAPL', last: 145.64, high: 147.10, low: 144.89, change: -1.23, changePercent: -0.84, volume: 74232310, time: '16:00' },
-              { name: 'Microsoft', code: 'MSFT', last: 299.35, high: 301.45, low: 298.12, change: -2.00, changePercent: -0.66, volume: 24133190, time: '16:00' },
-              // Add 38 more example price data items
-              ...Array.from({ length: 38 }, (_, i) => ({
-                name: `Company${i + 1}`,
-                code: `COMP${i + 1}`,
-                last: Math.random() * 100,
-                high: Math.random() * 100,
-                low: Math.random() * 100,
-                change: Math.random() * 10,
-                changePercent: Math.random() * 10,
-                volume: Math.floor(Math.random() * 1000000),
-                time: '16:00'
-              }))
-            ],
-            fundamental: [
-              { name: 'Apple', code: 'AAPL', marketCap: '2.41T', revenue: '365.82B', peRatio: 28.43, eps: 5.61, beta: 1.20 },
-              { name: 'Microsoft', code: 'MSFT', marketCap: '2.29T', revenue: '184.90B', peRatio: 33.84, eps: 8.05, beta: 0.91 },
-              // Add 38 more example fundamental data items
-              ...Array.from({ length: 38 }, (_, i) => ({
-                name: `Company${i + 1}`,
-                code: `COMP${i + 1}`,
-                marketCap: `${Math.random() * 1000}B`,
-                revenue: `${Math.random() * 1000}B`,
-                peRatio: Math.random() * 100,
-                eps: Math.random() * 10,
-                beta: Math.random() * 2
-              }))
+              { name: 'Bitcoin', code: 'BTC', last: 34000, high: 35000, low: 33000, change: 500, changePercent: 1.5, volume: 45000, time: '16:00' },
+              { name: 'Ethereum', code: 'ETH', last: 2300, high: 2400, low: 2200, change: 50, changePercent: 2.2, volume: 40000, time: '16:00' },
             ],
             gainers: [
-              { code: 'TSLA', last: 620.83, changePercent: 5.23 },
-              { code: 'NVDA', last: 750.25, changePercent: 4.89 }
+              { code: 'DOGE', last: 0.25, changePercent: 10 },
+              { code: 'ADA', last: 1.5, changePercent: 7 },
             ],
             losers: [
-              { code: 'NFLX', last: 520.23, changePercent: -3.14 },
-              { code: 'FB', last: 330.45, changePercent: -2.56 }
-            ]
-          }
+              { code: 'XRP', last: 0.75, changePercent: -3 },
+              { code: 'LTC', last: 150, changePercent: -2 },
+            ],
+          },
         };
         this.priceData = response.data.price || [];
-        this.fundamentalData = response.data.fundamental || [];
         this.gainers = response.data.gainers || [];
         this.losers = response.data.losers || [];
         this.logAction('Fetched Shares Data');
       } catch (error) {
         console.error('Error fetching shares data:', error);
         this.priceData = [];
-        this.fundamentalData = [];
         this.gainers = [];
         this.losers = [];
         this.logAction('Error Fetching Shares Data');
       }
     },
-    async fetchCryptoData() {
-      try {
-        const response = await axios.get('/api/crypto'); // Replace with your API endpoint
-        this.cryptoData = response.data || [];
-        this.logAction('Fetched Cryptocurrency Data');
-      } catch (error) {
-        console.error('Error fetching cryptocurrency data:', error);
-        this.cryptoData = [];
-        this.logAction('Error Fetching Cryptocurrency Data');
-      }
-    },
     changeSection(section) {
       this.activeSection = section;
-      this.currentPage = 1; // Reset to the first page when changing sections
+      this.currentPage = 1;
       this.logAction('Changed Section', { section });
     },
     prevPage() {
@@ -300,10 +275,6 @@ export default {
         this.currentPage++;
         this.logAction('Changed Page', { page: this.currentPage });
       }
-    },
-    openConsole(event) {
-      console.log('Console opened on right-click', event);
-      this.logAction('Opened Console', { event });
     },
     toggleTheme() {
       this.darkTheme = !this.darkTheme;
@@ -321,17 +292,15 @@ export default {
         action,
         details,
         timestamp: new Date().toISOString(),
-        user: this.user ? this.user.email : 'Guest'
+        user: this.user ? this.user.email : 'Guest',
       };
       console.log('Log Entry:', logEntry);
-    }
+    },
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
     this.fetchSharesData();
-    this.fetchCryptoData(); // Added call to fetch cryptocurrency data
 
-    // Initialize theme from localStorage
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       this.darkTheme = true;
@@ -341,26 +310,28 @@ export default {
       document.body.classList.remove('dark-theme');
     }
 
-    // Initialize user from localStorage
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      this.user = JSON.parse(savedUser);
-      this.isLoggedIn = true;
-      this.logAction('Restored User Session');
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.logAction('Restored User Session');
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('user');
+      }
     }
-  }
+  },
 };
 </script>
 
-
-
 <style scoped>
-.shares-page {
+.crypto-main-page {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   font-family: Arial, sans-serif;
-  color: #333;
+  color: #383838;
   width: 100%;
 }
 
@@ -369,7 +340,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  background-color: #EBEBEC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -388,20 +359,21 @@ nav {
 }
 
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
 
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
@@ -439,12 +411,12 @@ nav a.active {
 }
 
 .search-container {
-  display: flex; /* Використовуємо flex для правильного вирівнювання */
-  align-items: center; /* Вирівнюємо по центру вертикально */
+  display: flex;
+  align-items: center;
   margin-left: 20px;
-  flex-grow: 1; /* Дозволяємо контейнеру займати весь доступний простір */
-  max-width: 400px; /* Максимальна ширина для кращого вигляду на великих екранах */
-  position: relative; /* Позиціювання для suggestions */
+  flex-grow: 1;
+  max-width: 400px;
+  position: relative;
 }
 
 .search-container input {
@@ -479,12 +451,12 @@ nav a.active {
 }
 
 .content {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  flex-grow: 1;
   padding: 20px;
-  flex-wrap: wrap; /* Allow flex items to wrap */
+  flex-wrap: wrap;
 }
 
 .main-content {
@@ -493,7 +465,7 @@ nav a.active {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%; /* Ensure it takes full width */
+  width: 100%;
 }
 
 .header-with-buttons {
@@ -501,7 +473,7 @@ nav a.active {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+  flex-wrap: wrap;
 }
 
 .header-with-buttons h1 {
@@ -521,25 +493,26 @@ nav a.active {
   font-size: 18px;
   cursor: pointer;
   border: none;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
   border-radius: 5px;
 }
 
 .switch-container button:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 .switch-container button.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
 }
 
 .shares-table-container {
-  width: 100%; /* Ensure it takes full width */
-  overflow-x: auto; /* Add horizontal scroll */
-  margin-top: 30px; /* Added margin-top to create space between the header and the table */
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 30px;
 }
 
 .shares-table table {
@@ -553,7 +526,7 @@ nav a.active {
   padding: 10px;
   text-align: left;
   border-bottom: 1px solid #ddd;
-  white-space: nowrap; /* Prevent text wrapping for better layout on smaller screens */
+  white-space: nowrap;
 }
 
 .shares-table th {
@@ -570,6 +543,7 @@ nav a.active {
   justify-content: center;
   align-items: center;
   gap: 10px;
+  flex-wrap: nowrap; /* Ensure items don't wrap to new lines */
 }
 
 .pagination button {
@@ -577,9 +551,13 @@ nav a.active {
   font-size: 16px;
   cursor: pointer;
   border: none;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
   border-radius: 5px;
-    color: #000;
+  white-space: nowrap; /* Prevent text from wrapping inside buttons */
+  display: flex;
+  align-items: center; /* Center content vertically */
+  justify-content: center; /* Center content horizontally */
 }
 
 .pagination button:disabled {
@@ -588,9 +566,14 @@ nav a.active {
 }
 
 .pagination button:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
+}
+
+.pagination span {
+  margin: 0 10px; /* Adjust margin to fit better between buttons */
+  white-space: nowrap; /* Ensure the text doesn't wrap */
 }
 
 .side-panel {
@@ -599,8 +582,11 @@ nav a.active {
   border: 1px solid #ddd;
   border-radius: 10px;
   padding: 10px;
-  margin-top: 20px; /* Added margin-top for better spacing */
+  margin-top: 20px;
   background-color: #f9f9f9;
+  color: #383838;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
 }
 
 .side-category {
@@ -613,33 +599,35 @@ nav a.active {
   padding: 10px;
   cursor: pointer;
   border: none;
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
   border-radius: 5px;
-    color: #000;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
 }
 
 .side-category button:hover {
-  background-color: #A3A9A9;
-  color: #333;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
 .side-category button.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
 }
 
 .side-content {
   margin-top: 20px;
+  color: #383838;
 }
 
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
-  margin-top: auto;
 }
 
 .footer-content {
@@ -657,9 +645,13 @@ footer {
 }
 
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
 }
 
 .footer-social {
@@ -669,8 +661,12 @@ footer {
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
 }
 
 .footer-right {
@@ -681,9 +677,13 @@ footer {
 }
 
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.footer-right a:hover {
+  color: #84847C;
 }
 
 .modal {
@@ -737,7 +737,7 @@ footer {
 }
 
 @media (max-width: 576px) {
-    header {
+  header {
     flex-direction: column;
     align-items: center;
   }
@@ -756,6 +756,7 @@ footer {
     max-width: 100%;
     margin-bottom: 10px;
   }
+
   .switch-container {
     align-items: center;
   }
@@ -849,7 +850,6 @@ input:checked + .slider:before {
   background-color: #21262d;
 }
 
-
 .dark-theme .search-container input {
   background-color: #161b22;
   color: #c9d1d9;
@@ -882,8 +882,25 @@ input:checked + .slider:before {
   background-color: #1e1e1e;
 }
 
-button, a {
-  color: #ffffff;
+
+button {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  font-size: 16px;
+  padding: 10px;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  outline: none;
+}
+
+button:hover {
+  background-color: #383838;
+  color: #EBEBEC;
+  transition: 0.2s;
 }
 
 .dark-theme button {
@@ -912,17 +929,20 @@ button, a {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
 
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
-  color: #333;
+  white-space: nowrap; /* Prevents text from wrapping */
 }
 
 .profile-menu a:hover {
-  background-color: #f0f0f0;
+  background-color: #EBEBEC;
+  color: #383838;
 }
 
 .dark-theme .profile-menu {
@@ -936,53 +956,5 @@ button, a {
 .dark-theme .profile-menu a:hover {
   background-color: #134B70;
 }
-
-.user-profile {
-  display: flex;
-  align-items: center;
-  position: relative;
-}
-
-.user-profile img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-.profile-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background-color: #fff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 5px;
-  overflow: hidden;
-  z-index: 1000;
-}
-
-.profile-menu a {
-  display: block;
-  padding: 10px 20px;
-  text-decoration: none;
-  color: #333;
-}
-
-.profile-menu a:hover {
-  background-color: #f0f0f0;
-}
-
-.dark-theme .profile-menu {
-  background-color: #161b22;
-}
-
-.dark-theme .profile-menu a {
-  color: #c9d1d9;
-}
-
-.dark-theme .profile-menu a:hover {
-  background-color: #134B70;
-}
-
 
 </style>

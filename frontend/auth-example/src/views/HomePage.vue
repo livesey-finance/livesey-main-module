@@ -12,12 +12,12 @@
         </ul>
       </div>
       <nav>
-        <a href="/" class="active">Home</a>
-        <a href="/shares">Shares</a>
-        <a href="/crypto">Crypto</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/calculator">Calculator</a>
-        <a href="/about">About</a>
+        <router-link to="/" class="active">Home</router-link>
+        <router-link to="/shares">Shares</router-link>
+        <router-link to="/crypto">Crypto</router-link>
+        <router-link to="/portfolio">Portfolio</router-link>
+        <router-link to="/calculator">Calculator</router-link>
+        <router-link to="/about">About</router-link>
         <a v-if="!isLoggedIn" @click="openLogin">Sign In</a>
         <a v-if="!isLoggedIn" @click="openSignup">Sign Up</a>
         <div v-if="isLoggedIn" class="user-profile">
@@ -33,6 +33,9 @@
         </label>
       </nav>
     </header>
+    <transition name="fade" mode="out-in">
+      <router-view />
+    </transition>
     <div class="content">
       <h1>Latest News</h1>
       <div class="news-container">
@@ -124,7 +127,9 @@ export default {
       showSignup: false,
       showProfileMenu: false,
       darkTheme: false,
-      newsUpdateInterval: null
+      newsUpdateInterval: null,
+      isLoggedIn: false,
+      user: null
     };
   },
   computed: {
@@ -144,10 +149,17 @@ export default {
             pageSize: 10
           }
         });
-        setNews(response.data.response.results);
+        if (response.data && response.data.response && response.data.response.results) {
+          setNews(response.data.response.results);
+        } else {
+          console.error(`No results found for ${category} news`);
+          setNews([]);
+        }
+        this.logAction(`Fetched ${category} news`);
       } catch (error) {
         console.error(`Error fetching ${category} news:`, error);
         setNews([]);
+        this.logAction(`Error fetching ${category} news`, { error });
       }
     },
     scrollHorizontally(event) {
@@ -155,49 +167,77 @@ export default {
       event.currentTarget.scrollLeft += event.deltaY;
     },
     async fetchSuggestions() {
-    try {
-      const response = await axios.get('/api/search', { params: { query: this.searchQuery } });
-      this.suggestions = response.data || [];
-      if (this.suggestions.length === 0) {
-        this.suggestions = [{ name: 'No matchings were found', code: '' }];
+      try {
+        const response = await axios.get(`/api/search`, {
+          params: { query: this.searchQuery },
+        });
+
+        // Assuming the response has both stocks and cryptos with a 'category' field
+        this.suggestions = response.data || [];
+
+        // Log action for fetching suggestions
+        this.logAction('Fetched Suggestions');
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        this.suggestions = [];
+        this.logAction('Error Fetching Suggestions');
       }
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      this.suggestions = [{ name: 'No matchings were found', code: '' }];
-    }
-   },
+    },
     selectSuggestion(item) {
-      if (item.code) {
+      // Check item category to route accordingly
+      if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
+      } else if (item.category === 'crypto') {
+        this.$router.push(`/crypto/${item.code}`);
       }
+
       this.suggestions = [];
       this.searchQuery = '';
+      this.logAction('Selected Suggestion', item);
     },
     openLogin() {
       this.showLogin = true;
       this.showSignup = false;
+      this.logAction('Opened Login Modal');
     },
     openSignup() {
       this.showSignup = true;
       this.showLogin = false;
+      this.logAction('Opened Signup Modal');
     },
     closeModal() {
       this.showLogin = false;
       this.showSignup = false;
+      this.logAction('Closed Modal');
     },
     toggleProfileMenu() {
       this.showProfileMenu = !this.showProfileMenu;
+      this.logAction('Toggled Profile Menu');
     },
     viewProfile() {
-      console.log('Viewing profile');
+      this.$router.push(`/profile/${this.user.username}`);
+      this.logAction('Viewing Profile');
     },
     handleLogin(user) {
-      this.login(user);
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
       this.showLogin = false;
+      this.logAction('User Logged In');
     },
     handleSignup(user) {
-      this.login(user);
+      this.isLoggedIn = true;
+      this.user = user;
+      localStorage.setItem('user', JSON.stringify(user));
       this.showSignup = false;
+      this.logAction('User Signed Up');
+    },
+    logout() {
+      this.isLoggedIn = false;
+      this.user = null;
+      this.showProfileMenu = false;
+      localStorage.removeItem('user');
+      this.logAction('User Logged Out');
     },
     formatTime(dateString) {
       const date = new Date(dateString);
@@ -214,6 +254,7 @@ export default {
         document.body.classList.remove('dark-theme');
         localStorage.setItem('theme', 'light');
       }
+      this.logAction('Toggled Theme', { darkTheme: this.darkTheme });
     },
     startNewsUpdate() {
       this.newsUpdateInterval = setInterval(() => {
@@ -221,6 +262,16 @@ export default {
         this.fetchNews('stock market', news => (this.stockNews = news));
         this.fetchNews('politics', news => (this.politicalNews = news));
       }, 3 * 60 * 60 * 1000); // Update every 3 hours
+      this.logAction('Started News Update Interval');
+    },
+    logAction(action, details = {}) {
+      const logEntry = {
+        action,
+        details,
+        timestamp: new Date().toISOString(),
+        user: this.user ? this.user.email : 'Guest'
+      };
+      console.log('Log Entry:', logEntry);
     }
   },
   mounted() {
@@ -237,24 +288,51 @@ export default {
       document.body.classList.remove('dark-theme');
     }
 
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        this.user = JSON.parse(savedUser);
+        this.isLoggedIn = true;
+        this.logAction('Restored User Session');
+      } catch (error) {
+        console.error('Error parsing saved user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+
     // Start the periodic news update
     this.startNewsUpdate();
   },
   beforeUnmount() {
     if (this.newsUpdateInterval) {
       clearInterval(this.newsUpdateInterval);
+      this.logAction('Cleared News Update Interval');
     }
   }
 };
 </script>
 
 
+
 <style scoped>
+.app-container {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+
+
 .home-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+  font-family: Arial, sans-serif;
+  color: #383838;
 }
 
 header {
@@ -262,7 +340,9 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  background-color: #f6f4f0;
+  font-family: Arial, sans-serif;
+  background-color: #EBEBEC;
+  color: #383838;
   width: 100%;
   box-sizing: border-box;
 }
@@ -280,18 +360,21 @@ nav {
   font-size: 22px;
 }
 nav a {
-  color: #000;
+  color: #383838;
   text-decoration: none;
   padding: 10px 20px;
   border-radius: 5px;
 }
+
 nav a:hover {
-  background-color: #fff;
+  background-color: #7c7c7c;
+  color: #EBEBEC;
   transition: 0.2s;
 }
+
 nav a.active {
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   transition: 0.2s;
 }
 
@@ -315,13 +398,20 @@ nav a.active {
   border-radius: 5px;
   overflow: hidden;
   z-index: 1000;
+  width: 150px; /* Adjust width to ensure text fits in one line */
 }
 
 .profile-menu a {
   display: block;
-  padding: 10px 20px;
-  color: #333;
+  padding: 10px 20px; /* Reduced padding to allow more space for text */
+  color: #383838;
   text-decoration: none;
+  white-space: nowrap; /* Prevents text from wrapping */
+}
+
+.profile-menu a:hover {
+  background-color: #EBEBEC;
+  color: #383838;
 }
 
 .profile-menu a:hover {
@@ -347,7 +437,7 @@ h1 {
 }
 
 .news-section {
-  background-color: #f4f4f4;
+  background-color: #EBEBEC;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -365,7 +455,7 @@ h1 {
   flex: 0 0 auto;
   width: 250px;
   padding: 10px;
-  background-color: #fff;
+  background-color: #FBF9FB;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease-in-out;
@@ -403,8 +493,8 @@ h1 {
 
 footer {
   width: 100%;
-  background-color: #333;
-  color: #fff;
+  background-color: #383838;
+  color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -420,12 +510,17 @@ footer {
 .footer-left {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .footer-logo {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   font-size: 20px;
+}
+
+.footer-logo:hover {
+  color: #84847C;
 }
 
 .footer-social {
@@ -435,20 +530,29 @@ footer {
 }
 
 .footer-social a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
+}
+
+.footer-social a:hover {
+  color: #84847C;
 }
 
 .footer-right {
   display: flex;
   gap: 20px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .footer-right a {
-  color: #fff;
+  color: #FBF9FB;
   text-decoration: none;
   margin-right: 15px;
+}
+
+.footer-right a:hover {
+  color: #84847C;
 }
 
 .search-container {
@@ -472,7 +576,7 @@ footer {
   top: 100%;
   left: 0;
   right: 0;
-  background-color: #fff;
+  background-color: #EBEBEC;
   border: 1px solid #ccc;
   border-radius: 5px;
   list-style: none;
