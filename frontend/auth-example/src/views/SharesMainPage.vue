@@ -295,6 +295,9 @@ export default {
       }
     },
     selectSuggestion(item) {
+      // Save selected company data to localStorage
+      localStorage.setItem('selectedCompany', JSON.stringify(item));
+
       // Check item category to route accordingly
       if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
@@ -382,7 +385,6 @@ export default {
   },
 };
 </script>
-
 
 
 <style scoped>

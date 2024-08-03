@@ -5,7 +5,7 @@
       <div class="search-container">
         <input type="text" v-model="searchQuery" @input="fetchSuggestions" placeholder="Search stocks and crypto..." />
         <ul v-if="searchQuery.length > 0" class="suggestions">
-          <li v-if="suggestions.length === 0">no matchings were found</li>
+          <li v-if="suggestions.length === 0">No matchings were found</li>
           <li v-else v-for="item in suggestions.slice(0, 5)" :key="item.code" @click="selectSuggestion(item)">
             {{ item.name }} ({{ item.code }})
           </li>
@@ -43,7 +43,6 @@
           <h2>Cryptocurrency News</h2>
           <div class="news-carousel" @wheel="scrollHorizontally($event)">
             <div v-for="news in cryptoNews" :key="news.id" class="news-item">
-              <img v-if="news.fields.thumbnail" :src="news.fields.thumbnail" alt="News Image" />
               <h3>{{ news.webTitle }}</h3>
               <p>{{ formatTime(news.webPublicationDate) }}</p>
               <a :href="news.webUrl" target="_blank">Read more</a>
@@ -54,7 +53,6 @@
           <h2>Stock Market News</h2>
           <div class="news-carousel" @wheel="scrollHorizontally($event)">
             <div v-for="news in stockNews" :key="news.id" class="news-item">
-              <img v-if="news.fields.thumbnail" :src="news.fields.thumbnail" alt="News Image" />
               <h3>{{ news.webTitle }}</h3>
               <p>{{ formatTime(news.webPublicationDate) }}</p>
               <a :href="news.webUrl" target="_blank">Read more</a>
@@ -65,7 +63,6 @@
           <h2>Political News</h2>
           <div class="news-carousel" @wheel="scrollHorizontally($event)">
             <div v-for="news in politicalNews" :key="news.id" class="news-item">
-              <img v-if="news.fields.thumbnail" :src="news.fields.thumbnail" alt="News Image" />
               <h3>{{ news.webTitle }}</h3>
               <p>{{ formatTime(news.webPublicationDate) }}</p>
               <a :href="news.webUrl" target="_blank">Read more</a>
@@ -107,7 +104,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
 import SignupPage from '@/views/SignupPage.vue';
 
@@ -138,19 +134,16 @@ export default {
     }
   },
   methods: {
-    async fetchNews(category, setNews) {
-      const apiKey = '071c8f5a-0506-470b-b57a-5903c84d8317'; 
+    async fetchNews(category, apiEndpoint, setNews) {
       try {
-        const response = await axios.get('https://content.guardianapis.com/search', {
-          params: {
-            q: category,
-            'api-key': apiKey,
-            'show-fields': 'thumbnail,headline',
-            pageSize: 10
-          }
-        });
-        if (response.data && response.data.response && response.data.response.results) {
-          setNews(response.data.response.results);
+        console.log(`Fetching ${category} news from ${apiEndpoint}`);
+        const response = await fetch(apiEndpoint);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (data && data.response && data.response.results) {
+          setNews(data.response.results);
         } else {
           console.error(`No results found for ${category} news`);
           setNews([]);
@@ -159,7 +152,9 @@ export default {
       } catch (error) {
         console.error(`Error fetching ${category} news:`, error);
         setNews([]);
-        this.logAction(`Error fetching ${category} news`, { error });
+        this.logAction(`Error fetching ${category} news`, {
+          error: error.message,
+        });
       }
     },
     scrollHorizontally(event) {
@@ -168,14 +163,12 @@ export default {
     },
     async fetchSuggestions() {
       try {
-        const response = await axios.get(`/api/search`, {
-          params: { query: this.searchQuery },
-        });
-
-        // Assuming the response has both stocks and cryptos with a 'category' field
-        this.suggestions = response.data || [];
-
-        // Log action for fetching suggestions
+        const response = await fetch(`/api/search?query=${this.searchQuery}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        this.suggestions = data || [];
         this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -184,7 +177,6 @@ export default {
       }
     },
     selectSuggestion(item) {
-      // Check item category to route accordingly
       if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
       } else if (item.category === 'crypto') {
@@ -241,9 +233,12 @@ export default {
     },
     formatTime(dateString) {
       const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+      const year = date.getFullYear();
       const hours = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
+      return `${day}/${month}/${year} ${hours}:${minutes}`;
     },
     toggleTheme() {
       this.darkTheme = !this.darkTheme;
@@ -257,11 +252,17 @@ export default {
       this.logAction('Toggled Theme', { darkTheme: this.darkTheme });
     },
     startNewsUpdate() {
+      const apiKey = 'YOUR_API_KEY';
+      const cryptoEndpoint = `https://content.guardianapis.com/search?tag=technology/cryptocurrencies&api-key=${apiKey}&show-fields=thumbnail`;
+      const stockEndpoint = `https://content.guardianapis.com/search?tag=business/stock-markets&api-key=${apiKey}&show-fields=thumbnail`;
+      const politicsEndpoint = `https://content.guardianapis.com/search?section=politics&api-key=${apiKey}&show-fields=thumbnail`;
+
       this.newsUpdateInterval = setInterval(() => {
-        this.fetchNews('cryptocurrency', news => (this.cryptoNews = news));
-        this.fetchNews('stock market', news => (this.stockNews = news));
-        this.fetchNews('politics', news => (this.politicalNews = news));
+        this.fetchNews('cryptocurrency', cryptoEndpoint, news => (this.cryptoNews = news));
+        this.fetchNews('stock market', stockEndpoint, news => (this.stockNews = news));
+        this.fetchNews('politics', politicsEndpoint, news => (this.politicalNews = news));
       }, 3 * 60 * 60 * 1000); // Update every 3 hours
+
       this.logAction('Started News Update Interval');
     },
     logAction(action, details = {}) {
@@ -275,9 +276,14 @@ export default {
     }
   },
   mounted() {
-    this.fetchNews('cryptocurrency', news => (this.cryptoNews = news));
-    this.fetchNews('stock market', news => (this.stockNews = news));
-    this.fetchNews('politics', news => (this.politicalNews = news));
+    const apiKey = 'YOUR_API_KEY';
+    const cryptoEndpoint = `https://content.guardianapis.com/search?tag=technology/cryptocurrencies&api-key=${apiKey}&show-fields=thumbnail`;
+    const stockEndpoint = `https://content.guardianapis.com/search?tag=business/stock-markets&api-key=${apiKey}&show-fields=thumbnail`;
+    const politicsEndpoint = `https://content.guardianapis.com/search?section=politics&api-key=${apiKey}&show-fields=thumbnail`;
+
+    this.fetchNews('cryptocurrency', cryptoEndpoint, news => (this.cryptoNews = news));
+    this.fetchNews('stock market', stockEndpoint, news => (this.stockNews = news));
+    this.fetchNews('politics', politicsEndpoint, news => (this.politicalNews = news));
 
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
@@ -300,7 +306,6 @@ export default {
       }
     }
 
-    // Start the periodic news update
     this.startNewsUpdate();
   },
   beforeUnmount() {
@@ -311,6 +316,7 @@ export default {
   }
 };
 </script>
+
 
 
 

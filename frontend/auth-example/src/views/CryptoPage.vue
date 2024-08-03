@@ -249,11 +249,11 @@
 <script>
 import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
-import SignupPage from '@/views/SignupPage.vue';
+import SignupPage from '@/views/LoginPage.vue';
 import PortfolioCryptoModal from '@/components/PortfolioCryptoModal.vue';
 
 export default {
-  name: 'SharesPage',
+  name: 'CryptoPage',
   components: {
     LoginPage,
     SignupPage,
@@ -263,7 +263,6 @@ export default {
     return {
       isInPortfolio: false,
       showPortfolioModal: false,
-      selectedCrypto: null,
       activeTab: 'general',
       logoSrc: null,
       companyLogoSrc: null,
@@ -287,7 +286,7 @@ export default {
         { id: 1, name: 'Tech Portfolio' },
         { id: 2, name: 'Crypto Portfolio' },
         { id: 3, name: 'Real Estate Portfolio' },
-      ], // Example portfolios
+      ],
     };
   },
   computed: {
@@ -301,15 +300,15 @@ export default {
         alert('To add this to portfolio, you have to be logged in or registered');
         return;
       }
-      this.showPortfolioModal = true; // Open the modal
+      this.showPortfolioModal = true;
     },
     handleModalConfirm(data) {
       console.log('Modal confirmed with data:', data);
       this.isInPortfolio = !this.isInPortfolio;
-      this.showPortfolioModal = false; // Close the modal
+      this.showPortfolioModal = false;
     },
     closeModal() {
-      this.showPortfolioModal = false; // Close the modal
+      this.showPortfolioModal = false;
     },
     openLogin() {
       this.showLogin = true;
@@ -331,21 +330,21 @@ export default {
     },
     logout() {
       this.isLoggedIn = false;
-      this.user = null; // Clear user information on logout
+      this.user = null;
       this.showProfileMenu = false;
       localStorage.removeItem('user');
       this.logAction('User Logged Out');
     },
     handleLogin(user) {
       this.isLoggedIn = true;
-      this.user = user; // Store user information
+      this.user = user;
       localStorage.setItem('user', JSON.stringify(user));
       this.showLogin = false;
       this.logAction('User Logged In');
     },
     handleSignup(user) {
       this.isLoggedIn = true;
-      this.user = user; // Store user information
+      this.user = user;
       localStorage.setItem('user', JSON.stringify(user));
       this.showSignup = false;
       this.logAction('User Signed Up');
@@ -359,18 +358,25 @@ export default {
       }
     },
     async fetchCompanyDetails() {
-      const companyCode = this.$route.params.code || 'unknown';
-      try {
-        const response = await axios.get(`/api/company-details/${companyCode}`);
-        const data = response.data || {};
-        this.companyName = data.name || 'Unknown';
-        this.companyCode = data.code || 'unknown';
-        this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
-      } catch (error) {
-        console.error('Error fetching company details:', error);
-        this.companyName = 'Unknown';
-        this.companyCode = 'unknown';
-        this.companyLogoSrc = this.importLogo('default.png');
+      const storedData = JSON.parse(localStorage.getItem('selectedCrypto'));
+      if (storedData) {
+        this.companyName = storedData.name;
+        this.companyCode = storedData.code;
+        this.companyLogoSrc = this.importLogo(storedData.logoSrc || 'default.png');
+      } else {
+        const companyCode = this.$route.params.code || 'unknown';
+        try {
+          const response = await axios.get(`/api/company-details/${companyCode}`);
+          const data = response.data || {};
+          this.companyName = data.name || 'Unknown';
+          this.companyCode = data.code || 'unknown';
+          this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
+        } catch (error) {
+          console.error('Error fetching company details:', error);
+          this.companyName = 'Unknown';
+          this.companyCode = 'unknown';
+          this.companyLogoSrc = this.importLogo('default.png');
+        }
       }
     },
     async fetchMetrics() {
@@ -435,10 +441,7 @@ export default {
           params: { query: this.searchQuery },
         });
 
-        // Assuming the response has both stocks and cryptos with a 'category' field
         this.suggestions = response.data || [];
-
-        // Log action for fetching suggestions
         this.logAction('Fetched Suggestions');
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -447,7 +450,6 @@ export default {
       }
     },
     selectSuggestion(item) {
-      // Check item category to route accordingly
       if (item.category === 'stock') {
         this.$router.push(`/shares/${item.code}`);
       } else if (item.category === 'crypto') {
@@ -497,7 +499,16 @@ export default {
   },
   created() {
     this.logoSrc = this.importLogo('logo.png');
-    this.fetchCompanyDetails();
+
+    // Retrieve and set crypto name and code from localStorage
+    const selectedCrypto = JSON.parse(localStorage.getItem('selectedCrypto'));
+    if (selectedCrypto) {
+      this.companyName = selectedCrypto.name;
+      this.companyCode = selectedCrypto.code;
+    } else {
+      this.fetchCompanyDetails();
+    }
+
     this.fetchMetrics();
     
     // Initialize theme from localStorage
@@ -531,7 +542,8 @@ export default {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -780,6 +792,7 @@ footer {
   color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
+  margin-top: auto; /* Ensure footer is pushed to the bottom */
 }
 
 .footer-content {

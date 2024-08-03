@@ -310,20 +310,27 @@ export default {
       }
     },
     async fetchCompanyDetails() {
-      const companyCode = this.$route.params.code || 'unknown';
-      try {
-        const response = await axios.get(`/api/company-details/${companyCode}`);
-        const data = response.data || {};
-        this.companyName = data.name || 'Unknown';
-        this.companyCode = data.code || 'unknown';
-        this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
-        this.logAction('Fetched Company Details', { companyCode });
-      } catch (error) {
-        console.error('Error fetching company details:', error);
-        this.companyName = 'Unknown';
-        this.companyCode = 'unknown';
-        this.companyLogoSrc = this.importLogo('default.png');
-        this.logAction('Error Fetching Company Details', { error });
+      const storedData = JSON.parse(localStorage.getItem('selectedStock'));
+      if (storedData) {
+        this.companyName = storedData.name;
+        this.companyCode = storedData.code;
+        this.companyLogoSrc = this.importLogo(storedData.logoSrc || 'default.png');
+      } else {
+        const companyCode = this.$route.params.code || 'unknown';
+        try {
+          const response = await axios.get(`/api/company-details/${companyCode}`);
+          const data = response.data || {};
+          this.companyName = data.name || 'Unknown';
+          this.companyCode = data.code || 'unknown';
+          this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
+          this.logAction('Fetched Company Details', { companyCode });
+        } catch (error) {
+          console.error('Error fetching company details:', error);
+          this.companyName = 'Unknown';
+          this.companyCode = 'unknown';
+          this.companyLogoSrc = this.importLogo('default.png');
+          this.logAction('Error Fetching Company Details', { error });
+        }
       }
     },
     async fetchMetrics() {
@@ -435,6 +442,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 * {
@@ -691,6 +699,7 @@ footer {
   color: #EBEBEC;
   padding: 20px;
   box-sizing: border-box;
+  margin-top: auto; /* Ensure footer is pushed to the bottom */
 }
 
 .footer-content {

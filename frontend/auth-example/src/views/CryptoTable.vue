@@ -22,7 +22,7 @@
       <tbody>
         <tr v-for="row in sortedData" :key="row.code">
           <td v-if="showNameField">
-            <a @click.prevent="goToCryptoDetail(row.code)">{{ row.name }}</a>
+            <a @click.prevent="goToCryptoDetail(row)">{{ row.name }}</a>
           </td>
           <td v-for="header in relevantHeaders.slice(showNameField ? 1 : 0)" :key="header.key">{{ row[header.key] }}</td>
         </tr>
@@ -86,11 +86,9 @@ export default {
         this.sortedDirection = 'asc';
       }
     },
-    goToStockDetail(stockCode) {
-      this.$router.push(`/shares/${stockCode}`);
-    },
-    goToCryptoDetail(cryptoCode) {
-      this.$router.push(`/crypto/${cryptoCode}`);
+    goToCryptoDetail(crypto) {
+      localStorage.setItem('selectedCrypto', JSON.stringify(crypto));
+      this.$router.push(`/crypto/${crypto.code}`);
     },
   },
 };

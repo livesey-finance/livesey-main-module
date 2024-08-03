@@ -22,7 +22,7 @@
       <tbody>
         <tr v-for="row in sortedData" :key="row.code">
           <td v-if="showNameField">
-            <a @click.prevent="goToStockDetail(row.code)">{{ row.name }}</a>
+            <a @click.prevent="goToStockDetail(row)">{{ row.name }}</a>
           </td>
           <td v-for="header in relevantHeaders.slice(showNameField ? 1 : 0)" :key="header.key">{{ row[header.key] }}</td>
         </tr>
@@ -92,12 +92,14 @@ export default {
         this.sortedDirection = 'asc';
       }
     },
-    goToStockDetail(stockCode) {
-      this.$router.push(`/shares/${stockCode}`);
+    goToStockDetail(stock) {
+      localStorage.setItem('selectedStock', JSON.stringify(stock));
+      this.$router.push(`/shares/${stock.code}`);
     },
   },
 };
 </script>
+
 
 <style scoped>
 .shares-table {
