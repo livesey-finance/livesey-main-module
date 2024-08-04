@@ -318,7 +318,7 @@ nav a.active {
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
 
 input:checked + .slider:before {
