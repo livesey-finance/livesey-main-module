@@ -128,13 +128,13 @@ export default {
 .shares-table.dark-theme th,
 .shares-table.dark-theme td {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-bottom: 1px solid #30363d;
 }
 
 .shares-table.dark-theme th {
   background-color: #21262d;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-bottom: 1px solid #30363d;
   border-top: 1px solid #30363d;
 }

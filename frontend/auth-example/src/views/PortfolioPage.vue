@@ -35,14 +35,14 @@
     </header>
     <div class="content">
       <div class="chart-container" @contextmenu="openContextMenu">
-      <canvas id="portfolioChart"></canvas>
-      <div v-if="showContextMenu" :style="contextMenuStyle" class="context-menu">
-        <ul>
-          <li @click="deleteItem">Delete</li>
-          <li @click="changeQuantity">Change Quantity</li>
-        </ul>
+        <canvas id="portfolioChart"></canvas>
+        <div v-if="showContextMenu" :style="contextMenuStyle" class="context-menu">
+          <ul>
+            <li @click="deleteItem">Delete</li>
+            <li @click="changeQuantity">Change Quantity</li>
+          </ul>
+        </div>
       </div>
-    </div>
       <div class="info-container">
         <h2>Your portfolio:</h2>
         <p class="yields-title">
@@ -111,6 +111,7 @@ export default {
   },
   data() {
     return {
+      // Your existing data properties
       currency: 'USD',
       showCurrencyList: false,
       currencies: ['USD', 'UAH', 'PLN', 'EUR'],
@@ -149,7 +150,12 @@ export default {
       user: null,
       searchQuery: '',
       suggestions: [],
-      darkTheme: false
+      darkTheme: false,
+      showContextMenu: false,
+      contextMenuStyle: {
+        top: '0px',
+        left: '0px'
+      }
     };
   },
   computed: {
@@ -177,6 +183,8 @@ export default {
       console.log("Console opened on right-click", event);
     },
     handleChartClick(event) {
+      if (!this.chart) return;
+
       const activePoints = this.chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
       if (activePoints.length > 0) {
         const firstPoint = activePoints[0];
@@ -190,8 +198,9 @@ export default {
       if (this.chart) {
         this.chart.destroy();
       }
+
       const ctx = document.getElementById('portfolioChart').getContext('2d');
-      const legendColor = this.darkTheme ? '#c9d1d9' : '#000000';
+      const legendColor = this.darkTheme ? '#BFC3C6' : '#000000';
 
       this.chart = new Chart(ctx, {
         type: 'doughnut',
@@ -326,7 +335,6 @@ export default {
       }
     }
   },
-  
   watch: {
     darkTheme() {
       this.updateChart();
@@ -340,9 +348,6 @@ export default {
   }
 };
 </script>
-
-
-
 
 <style scoped>
 * {
@@ -643,23 +648,22 @@ footer {
 }
 
 /* Dark Theme Styles */
-
 .dark-theme {
   background-color: #0d1117;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme header {
-  background-color: #21252d;
+  background-color: #1E2229;
 }
 
-
 .dark-theme nav a {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme nav a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme nav a.active {
@@ -672,20 +676,27 @@ footer {
 }
 
 .dark-theme footer {
-  background-color: #1e1e1e;
-}
-
-.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
-  color: #c9d1d9;
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
 
 .dark-theme .profile-menu {
-  background-color: #21262d;
+  background-color: #161c24;
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a {
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme .search-container input {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-color: #30363d;
 }
 
@@ -695,26 +706,25 @@ footer {
 }
 
 .dark-theme .suggestions li {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .suggestions li:hover {
   background-color: #21262d;
 }
 
-
 .dark-theme h2 {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .yields-title, .dark-theme .yield-key, .dark-theme .yield-value, .dark-theme .yield-total {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .currency-list {
   background-color: #21262d;
   border-color: #30363d;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .currency-list li:hover {
@@ -723,7 +733,7 @@ footer {
 
 .dark-theme .chart-container {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .theme-toggle {
@@ -766,7 +776,7 @@ footer {
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
 
 input:checked + .slider:before {

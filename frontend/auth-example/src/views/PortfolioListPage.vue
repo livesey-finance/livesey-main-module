@@ -582,12 +582,8 @@ main {
 }
 
 .dark-theme .portfolio-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #161b22;
-  padding: 15px;
-  border-radius: 8px;
+  background-color: #21262d;
+  color: #BFC3C6;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 .dark-theme .portfolio-info {
@@ -600,19 +596,13 @@ main {
   font-size: 18px;
   cursor: pointer;
   border: none;
-  color: #383838;
   background-color: #EBEBEC;
-  border-radius: 5px;
-}
-
-.dark-theme .portfolio-actions button {
-  color: #333;
-  background-color: #f0f0f0;
+  color: #383838;
   border-radius: 5px;
 }
 
 .portfolio-actions button:hover {
-  background-color: #383838;
+  background-color: #7c7c7c;
   color: #EBEBEC;
   transition: 0.2s;
 }
@@ -620,7 +610,6 @@ main {
 .portfolio-actions button.active {
   background-color: #383838;
   color: #EBEBEC;
-  transition: 0.2s;
 }
 
 .search-container {
@@ -740,33 +729,42 @@ footer {
 /* Dark Theme Styles */
 .dark-theme {
   background-color: #0d1117;
-  color: #c9d1d9;
+  color: #BFC3C6;
+}
+.dark-theme footer {
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
 .dark-theme header {
-  background-color: #21252d;
+  background-color: #1E2229;
 }
 .dark-theme nav a {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 .dark-theme nav a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 .dark-theme nav a.active {
   background-color: #2F4172;
   color: #ffffff;
 }
-.dark-theme footer {
-  background-color: #1e1e1e;
-}
-.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
-  color: #c9d1d9;
-}
 .dark-theme .profile-menu {
-  background-color: #21262d;
+  background-color: #161c24;
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a {
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #8794A0;
+  color: #ffffff;
 }
 .dark-theme .search-container input {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-color: #30363d;
 }
 .dark-theme .suggestions {
@@ -774,7 +772,7 @@ footer {
   border-color: #30363d;
 }
 .dark-theme .suggestions li {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 .dark-theme .suggestions li:hover {
   background-color: #21262d;
@@ -803,6 +801,7 @@ footer {
   transition: 0.4s;
   border-radius: 34px;
 }
+
 .slider:before {
   position: absolute;
   content: "";
@@ -814,9 +813,11 @@ footer {
   transition: 0.4s;
   border-radius: 50%;
 }
+
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
+
 input:checked + .slider:before {
   transform: translateX(20px);
 }

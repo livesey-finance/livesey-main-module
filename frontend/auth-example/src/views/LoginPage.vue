@@ -153,9 +153,19 @@ button:hover {
 p {
   margin-top: 20px;
   cursor: pointer;
+  text-align: center;
   color: #383838;
 }
 p:hover {
+  color: #84847C;
+}
+.google-auth {
+  margin-top: 2px;
+  cursor: pointer;
+  color: #383838;
+  text-align: center;
+}
+.google-auth:hover {
   color: #84847C;
 }
 h2 {
@@ -196,27 +206,17 @@ h2 {
   }
 }
 
-.google-auth {
-  margin-top: 2px;
-  cursor: pointer;
-  color: #383838;
-  text-align: center;
-}
-.google-auth:hover {
-  color: #84847C;
-}
-
 .dark-theme .logo {
   max-width: 200px;
 }
 
 .dark-theme .auth-box {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 .dark-theme .auth-input {
   background-color: #30363d;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 .dark-theme button {
   background-color: #2F4172;
@@ -225,16 +225,32 @@ h2 {
 .dark-theme .close-button {
   color: #ffffff;
 }
+.dark-theme .close-button:hover {
+  color: #BFC3C6;
+}
 .dark-theme .toggle-password {
-  color: #c9d1d9;
+  color: #BFC3C6;
+}
+.dark-theme .toggle-password:active {
+  color: #84847C;
 }
 .dark-theme p {
-  color: #c9d1d9;
+  color: #BFC3C6;
+}
+.dark-theme p:hover {
+  color: #84847C;
+}
+.dark-theme .google-auth {
+  color: #BFC3C6;
+}
+.dark-theme .google-auth:hover {
+  color: #84847C;
 }
 .dark-theme .signup-title {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 .dark-theme button:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 </style>

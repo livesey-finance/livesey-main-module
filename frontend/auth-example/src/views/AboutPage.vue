@@ -347,7 +347,7 @@ nav a.active {
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
 
 input:checked + .slider:before {
@@ -373,13 +373,6 @@ main {
   margin-bottom: 40px;
   font-size: 28px;
   color: #383838;
-}
-.dark-theme .livesey p {
-  color: #c9d1d9;
-}
-
-.dark-theme .livesey h2 {
-  color: #c9d1d9;
 }
 
 .livesey h2 {
@@ -427,30 +420,17 @@ main {
   font-size: 22px;
   color: #383838;
 }
+
 .author-card p1 {
   margin-top: 15px;
   color: #383838;
   font-size: 15px;
 }
 
-.dark-theme .author-card h2 {
-  color: #c9d1d9;
-}
-.dark-theme .author-card p {
-  color: #c9d1d9;
-}
-.dark-theme .author-card p1 {
-  color: #c9d1d9;
-}
-
 .social-media {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.dark-theme .social-media h2 {
-  color: #c9d1d9;
 }
 
 .social-media h2 {
@@ -591,16 +571,21 @@ footer {
 
 /* Dark Theme Styles */
 .dark-theme {
-  background-color: #0d1117;
-  color: #c9d1d9;
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
 
 .dark-theme header {
-  background-color: #161b22;
+  background-color: #1E2229;
+}
+
+.dark-theme nav a {
+  color: #BFC3C6;
 }
 
 .dark-theme nav a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme nav a.active {
@@ -610,24 +595,55 @@ footer {
 
 .dark-theme .search-container input {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-color: #30363d;
 }
 
-.dark-theme nav a {
-  color: #c9d1d9;
-}
-
-.dark-theme nav a.active {
-  color: #ffffff;
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
 }
 
 .dark-theme .about-container {
   background-color: #0d1117;
 }
 
+.dark-theme .livesey p {
+  color: #BFC3C6;
+}
+
+.dark-theme .livesey h2 {
+  color: #BFC3C6;
+}
+
 .dark-theme .author-card {
-  background-color: #21262d;
+  background-color: #1E2229;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); /* Light shadow for dark background */
+  border-radius: 8px;
+}
+
+.dark-theme .suggestions {
+  background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #BFC3C6;
+}
+
+.dark-theme .author-card h2 {
+  color: #BFC3C6;
+}
+
+.dark-theme .author-card p {
+  color: #BFC3C6;
+}
+
+.dark-theme .author-card p1 {
+  color: #BFC3C6;
+}
+
+.dark-theme .social-media h2 {
+  color: #BFC3C6;
 }
 
 .dark-theme .social-icons a img {
@@ -635,7 +651,22 @@ footer {
 }
 
 .dark-theme footer {
-  background-color: #1e1e1e;
+  background-color: #1E2229;
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161c24;
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a {
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 /* Responsive Styles */
@@ -649,11 +680,40 @@ footer {
   main {
     align-items: stretch;
   }
+
+  .author-card {
+    width: 100%;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 @media (max-width: 768px) {
   nav {
     gap: 20px;
+  }
+
+  .author-card {
+    width: 90%;
+  }
+
+  .livesey p {
+    font-size: 24px;
+  }
+
+  .livesey h2 {
+    font-size: 32px;
+  }
+
+  .author-card p {
+    font-size: 20px;
+  }
+
+  .author-card h2 {
+    font-size: 24px;
   }
 }
 
@@ -671,6 +731,26 @@ footer {
     flex-direction: column;
     gap: 10px;
     margin-right: 0;
+  }
+
+  .author-card {
+    width: 100%;
+  }
+
+  .livesey p {
+    font-size: 20px;
+  }
+
+  .livesey h2 {
+    font-size: 28px;
+  }
+
+  .author-card p {
+    font-size: 18px;
+  }
+
+  .author-card h2 {
+    font-size: 22px;
   }
 }
 
@@ -712,16 +792,22 @@ footer {
   color: #383838;
 }
 
-.dark-theme .profile-menu {
-  background-color: #161b22;
+/* Responsive adjustments for search input */
+@media (max-width: 768px) {
+  .search-container {
+    max-width: 300px;
+  }
 }
 
-.dark-theme .profile-menu a {
-  color: #c9d1d9;
+@media (max-width: 576px) {
+  .search-container {
+    max-width: 250px;
+  }
 }
 
-.dark-theme .profile-menu a:hover {
-  background-color: #134B70;
+@media (max-width: 480px) {
+  .search-container {
+    max-width: 200px;
+  }
 }
-
 </style>

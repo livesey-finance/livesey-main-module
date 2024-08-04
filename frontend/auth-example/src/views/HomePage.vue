@@ -668,7 +668,6 @@ footer {
   display: none;
 }
 
-/* Dark theme styles */
 .theme-toggle {
   margin-left: 20px;
   margin-top: 15px;
@@ -709,95 +708,15 @@ footer {
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
 
 input:checked + .slider:before {
   transform: translateX(20px);
 }
 
-.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
-  color: #c9d1d9;
-}
-
 button, a{
   color: #ffffff;
-}
-
-.dark-theme button {
-  color: #21262d;
-}
-
-
-.dark-theme h2 {
-  color: #c9d1d9;
-}
-
-.dark-theme {
-  background-color: #0d1117;
-  color: #c9d1d9;
-}
-
-.dark-theme header {
-  background-color: #21252d;
-}
-
-.dark-theme nav a {
-  color: #c9d1d9;
-}
-
-.dark-theme nav a:hover {
-  background-color: #134B70;
-}
-
-.dark-theme nav a.active {
-  background-color: #2F4172;
-  color: #ffffff;
-}
-.dark-theme .news-section {
-  background-color: #161b22;
-}
-
-
-.dark-theme .search-container input {
-  background-color: #161b22;
-  color: #c9d1d9;
-  border-color: #30363d;
-}
-
-.dark-theme .suggestions {
-  background-color: #161b22;
-  border-color: #30363d;
-}
-
-.dark-theme .suggestions li {
-  color: #c9d1d9;
-}
-
-.dark-theme .suggestions li:hover {
-  background-color: #21262d;
-}
-
-.dark-theme .news-item {
-  background-color: #21262d;
-  color: #c9d1d9;
-}
-
-.dark-theme .suggestions {
-  background-color: #161b22;
-  border-color: #30363d;
-}
-
-.dark-theme .suggestions li {
-  color: #c9d1d9;
-}
-
-.dark-theme .suggestions li:hover {
-  background-color: #21262d;
-}
-
-.dark-theme .profile-menu {
-  background-color: #21262d;
 }
 
 .user-profile {
@@ -835,16 +754,96 @@ button, a{
   background-color: #f0f0f0;
 }
 
-.dark-theme .profile-menu {
+
+/* Dark theme styles */
+.dark-theme button {
+  color: #21262d;
+}
+
+.dark-theme h2 {
+  color: #BFC3C6;
+}
+
+.dark-theme {
+  background-color: #0d1117;
+  color: #BFC3C6;
+}
+
+.dark-theme footer {
+  background-color: #1E2229;
+  color: #BFC3C6;
+}
+
+.dark-theme header {
+  background-color: #1E2229;
+}
+
+.dark-theme nav a {
+  color: #BFC3C6;
+}
+
+.dark-theme nav a:hover {
+  background-color: #8794A0;
+  color: #ffffff;
+}
+
+.dark-theme nav a.active {
+  background-color: #2F4172;
+  color: #ffffff;
+}
+
+.dark-theme .news-section {
+  background-color: #1E2229;
+}
+
+.dark-theme .search-container input {
+  background-color: #1E2229;
+  color: #BFC3C6;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions {
+  background-color: #1E2229;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #BFC3C6;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .news-item {
+  background-color: #21262d;
+  color: #BFC3C6;
+}
+
+.dark-theme .suggestions {
   background-color: #161b22;
+  border-color: #30363d;
+}
+
+.dark-theme .suggestions li {
+  color: #BFC3C6;
+}
+
+.dark-theme .suggestions li:hover {
+  background-color: #21262d;
+}
+
+.dark-theme .profile-menu {
+  background-color: #161c24;
+  color: #BFC3C6;
 }
 
 .dark-theme .profile-menu a {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .profile-menu a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
-
 </style>

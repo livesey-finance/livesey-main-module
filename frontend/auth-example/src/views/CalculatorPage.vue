@@ -885,19 +885,20 @@ footer {
 /* Dark Theme Styles */
 .dark-theme {
   background-color: #0d1117;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme header {
-  background-color: #21252d;
+  background-color: #1E2229;
 }
 
 .dark-theme nav a {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme nav a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme nav a.active {
@@ -905,32 +906,43 @@ footer {
   color: #ffffff;
 }
 
-.dark-theme .content {
+.dark-theme .search-container input {
   background-color: #161b22;
+  color: #BFC3C6;
+  border-color: #30363d;
+}
+
+.dark-theme .content {
+  background-color: #0d1117;
 }
 
 .dark-theme .calculator {
-  background-color: #21252d;
-  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); /* Light shadow for dark background */
+  background-color: #1E2229;
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); 
   border-radius: 8px;
 }
 
-
 .dark-theme footer {
-  background-color: #1e1e1e;
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
-
-.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
-  color: #c9d1d9;
-}
-
 .dark-theme .profile-menu {
-  background-color: #21262d;
+  background-color: #161c24;
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a {
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme .search-container input {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-color: #30363d;
 }
 
@@ -940,11 +952,11 @@ footer {
 }
 
 .dark-theme .suggestions li {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .label{
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .suggestions li:hover {
@@ -952,19 +964,19 @@ footer {
 }
 
 .dark-theme .yields-title, .dark-theme .yield-key, .dark-theme .yield-value, .dark-theme .yield-total {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .currency-list {
   background-color: #21262d;
   border-color: #30363d;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .formula-description {
   margin-top: 20px;
   font-size: 1.4em;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .currency-list li:hover {
@@ -973,7 +985,45 @@ footer {
 
 .dark-theme .chart-container {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
+}
+
+.dark-theme h3 {
+  color: #BFC3C6;
+}
+
+.dark-theme .formula-header {
+  color: #BFC3C6;
+}
+
+.dark-theme .formula-description {
+  color: #BFC3C6;
+}
+
+.dark-theme .formula-selector,
+.input-group {
+  margin-bottom: 20px;
+  font-size: 1.2em;
+}
+
+.dark-theme .formula-selector select {
+  color: #161b22;
+}
+
+.dark-theme .input-group {
+  color: #BFC3C6;
+}
+
+.dark-theme .formula-selector {
+  color: #BFC3C6;
+}
+
+.dark-theme .calculator h2 {
+  color: #BFC3C6;
+}
+
+.dark-theme p {
+  color: #BFC3C6;
 }
 
 /* Theme Toggle Styles */
@@ -1017,7 +1067,7 @@ footer {
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
 
 input:checked + .slider:before {
@@ -1036,17 +1086,4 @@ input:checked + .slider:before {
   border-radius: 50%;
   cursor: pointer;
 }
-
-.dark-theme .profile-menu {
-  background-color: #161b22;
-}
-
-.dark-theme .profile-menu a {
-  color: #c9d1d9;
-}
-
-.dark-theme .profile-menu a:hover {
-  background-color: #134B70;
-}
-
 </style>

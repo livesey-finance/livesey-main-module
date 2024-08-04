@@ -517,15 +517,20 @@ footer {
 /* Dark Theme Styles */
 .dark-theme {
   background-color: #0d1117;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme header {
-  background-color: #161b22;
+  background-color: #1E2229;
+}
+
+.dark-theme nav a {
+  color: #BFC3C6;
 }
 
 .dark-theme nav a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme nav a.active {
@@ -534,23 +539,16 @@ footer {
 }
 
 .dark-theme .profile-card {
-  background-color: #21262d;
+  background-color: #1E2229;
 }
 
 .dark-theme .profile-card p {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme footer {
-  background-color: #1e1e1e;
-}
-
-.dark-theme .footer-right a {
-  color: #c9d1d9;
-}
-
-.dark-theme .footer-logo {
-  color: #c9d1d9;
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
 
 .user-profile {
@@ -592,35 +590,68 @@ footer {
 }
 
 .dark-theme .profile-menu {
-  background-color: #161b22;
+  background-color: #161c24;
+  color: #BFC3C6;
 }
 
 .dark-theme .profile-menu a {
-  color: #c9d1d9;
+  color: #BFC3C6;
+}
+
+.dark-theme .profile-menu a:hover {
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme nav a {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme nav a.active {
   color: #ffffff;
 }
 
-.dark-theme .profile-menu a:hover {
-  background-color: #134B70;
-}
-
 .dark-theme .profile-card {
-  background-color: #444;
-  color: #fff;
+  background-color: #21262d;
+  color: #BFC3C6;
 }
 
 .dark-theme .detail input {
-  background-color: #555;
-  border: 1px solid #666;
-  color: #fff;
+  background-color: #30363d;
+  border: 1px solid #1e2229;
+  color: #BFC3C6;
 }
+
+.dark-theme .change-avatar-btn {
+  color: #383838;
+  background-color: #EBEBEC;
+}
+
+.dark-theme .change-avatar-btn:hover {
+  background-color: #383838;
+  color: #EBEBEC;
+}
+
+.dark-theme .detail button {
+  color: #383838;
+  background-color: #EBEBEC;
+}
+
+.dark-theme .detail button:hover {
+  background-color: #383838;
+  color: #EBEBEC;
+}
+
+.dark-theme .approve-changes-btn {
+  color: #383838;
+  background-color: #EBEBEC;
+}
+
+.dark-theme .approve-changes-btn:hover {
+  background-color: #383838;
+  color: #EBEBEC;
+}
+
 
 .password-container {
   position: relative;
@@ -637,5 +668,12 @@ footer {
   cursor: pointer;
   font-size: 16px;
   color: #383838;
+}
+
+.dark-theme .toggle-password {
+  color: #BFC3C6;
+}
+.dark-theme .toggle-password:active {
+  color: #84847C;
 }
 </style>

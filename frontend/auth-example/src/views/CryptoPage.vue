@@ -249,7 +249,7 @@
 <script>
 import axios from 'axios';
 import LoginPage from '@/views/LoginPage.vue';
-import SignupPage from '@/views/LoginPage.vue';
+import SignupPage from '@/views/SignupPage.vue';
 import PortfolioCryptoModal from '@/components/PortfolioCryptoModal.vue';
 
 export default {
@@ -358,25 +358,18 @@ export default {
       }
     },
     async fetchCompanyDetails() {
-      const storedData = JSON.parse(localStorage.getItem('selectedCrypto'));
-      if (storedData) {
-        this.companyName = storedData.name;
-        this.companyCode = storedData.code;
-        this.companyLogoSrc = this.importLogo(storedData.logoSrc || 'default.png');
-      } else {
-        const companyCode = this.$route.params.code || 'unknown';
-        try {
-          const response = await axios.get(`/api/company-details/${companyCode}`);
-          const data = response.data || {};
-          this.companyName = data.name || 'Unknown';
-          this.companyCode = data.code || 'unknown';
-          this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
-        } catch (error) {
-          console.error('Error fetching company details:', error);
-          this.companyName = 'Unknown';
-          this.companyCode = 'unknown';
-          this.companyLogoSrc = this.importLogo('default.png');
-        }
+      const companyCode = this.$route.params.code || 'unknown';
+      try {
+        const response = await axios.get(`/api/company-details/${companyCode}`);
+        const data = response.data || {};
+        this.companyName = data.name || 'Unknown';
+        this.companyCode = data.code || 'unknown';
+        this.companyLogoSrc = this.importLogo(data.logoSrc || 'default.png');
+      } catch (error) {
+        console.error('Error fetching company details:', error);
+        this.companyName = 'Unknown';
+        this.companyCode = 'unknown';
+        this.companyLogoSrc = this.importLogo('default.png');
       }
     },
     async fetchMetrics() {
@@ -1030,28 +1023,21 @@ h2 {
 
 /* Dark Theme Styles */
 .dark-theme {
-  background-color: #0d1117;
-  color: #c9d1d9;
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
 
 .dark-theme header {
-  background-color: #21252d;
+  background-color: #1E2229;
 }
 
 .dark-theme nav a {
-  color: #c9d1d9;
-}
-
-.dark-theme h1 {
-  color: #c9d1d9;
-}
-
-.dark-theme h2 {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme nav a:hover {
-  background-color: #134B70;
+  background-color: #8794A0;
+  color: #ffffff;
 }
 
 .dark-theme nav a.active {
@@ -1059,16 +1045,21 @@ h2 {
   color: #ffffff;
 }
 
+.dark-theme h1 {
+  color: #BFC3C6;
+}
+
+.dark-theme h2 {
+  color: #BFC3C6;
+}
+
 .dark-theme .content {
   background-color: #161b22;
 }
 
 .dark-theme footer {
-  background-color: #1e1e1e;
-}
-
-.dark-theme .footer-logo, .dark-theme .footer-social a, .dark-theme .footer-right a {
-  color: #c9d1d9;
+  background-color: #1E2229;
+  color: #BFC3C6;
 }
 
 .dark-theme .profile-menu {
@@ -1077,7 +1068,7 @@ h2 {
 
 .dark-theme .search-container input {
   background-color: #161b22;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-color: #30363d;
 }
 
@@ -1087,7 +1078,7 @@ h2 {
 }
 
 .dark-theme .suggestions li {
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .suggestions li:hover {
@@ -1097,47 +1088,39 @@ h2 {
 .dark-theme .side-panel {
   background-color: #21262d;
   border-color: #30363d;
-  color: #c9d1d9;
+  color: #BFC3C6;
 }
 
 .dark-theme .ratios-table th, .dark-theme .ratios-table td {
   background-color: #21262d;
-  color: #c9d1d9;
+  color: #BFC3C6;
   border-bottom: 1px solid #30363d;
 }
 
 .dark-theme .portfolio-btn {
   background-color: #f0f0f0;
   color: #333;
-  border: none;
-  padding: 15px 5px; /* Reduced padding for smaller button */
-  cursor: pointer;
-  margin-left: 80px;
 }
+
 .dark-theme .portfolio-btn:hover {
   background-color: #333;
-  color: #A3A9A9;
-  transition: 0.2s;
+  color: #f0f0f0;
 }
-fff
+
 .dark-theme .portfolio-btn.remove-btn {
-    background-color: #f0f0f0;
+  background-color: #f0f0f0;
   color: #333;
-  border: none;
-  padding: 15px 5px; 
-  cursor: pointer;
-  margin-left: 80px;
 }
 
 .dark-theme.portfolio-btn.remove-btn:hover {
   background-color: #333;
-  color: #A3A9A9;
-  transition: 0.2s;
+  color: #f0f0f0;
 }
 
 .dark-theme button {
   color: #21262d;
 }
+
 
 .theme-toggle {
   margin-left: 20px;
@@ -1179,7 +1162,7 @@ fff
 }
 
 input:checked + .slider {
-  background-color: #2196f3;
+  background-color: #7487a4;
 }
 
 input:checked + .slider:before {
