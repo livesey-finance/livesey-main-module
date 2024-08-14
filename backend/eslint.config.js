@@ -11,7 +11,7 @@ export default [
       ecmaVersion: 2021,
       sourceType: "module",
       globals: {
-        console: "readonly",
+        console: "readonly", // DELETE THIS IN THE FUTURE
         process: "readonly",
       },
     },
