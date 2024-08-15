@@ -17,6 +17,6 @@ export const getDbClient = async () => {
     console.log("Successfully connected to Postgres");
     return client;
   } catch (err) {
-    console.error("Error connecting to database: ", err.message);
+    console.error("Error connecting to database", err.message);
   }
 };
