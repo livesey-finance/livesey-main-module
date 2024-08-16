@@ -12,9 +12,7 @@ app.use(express.json());
 app.use(cors(corsConfig));
 // app.use('/api', router);
 
-const start = async () => {
+(async () => {
   app.listen(PORT, () => console.log(`App is running on ${PORT} port`));
   await getDbClient();
-};
-
-start();
+})();
