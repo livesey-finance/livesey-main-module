@@ -7,4 +7,3 @@ export class Role {
     this.roleName = roleName;
   }
 }
-  

@@ -1,18 +1,24 @@
-import express from "express";
-import cors from "cors";
+import http from 'node:http';
+import { Router } from 'livesey-routing';
 
-import {corsConfig} from "./configs/corsConfig.js";
-import {env} from "./configs/envConfig.js";
-import {getPostgresDbClient} from "./configs/postgresConfig.js";
+import { env } from './configs/envConfig.js';
+import { getPostgresDbClient } from './configs/postgresConfig.js';
+import { router } from './infrastructure/routes/index.js';
+import { setCorsHeaders } from './configs/corsConfig.js';
 
-const PORT = parseInt(env.PORT, 10);
-const app = express();
+const port = parseInt(env.PORT, 10);
 
-app.use(express.json());
-app.use(cors(corsConfig));
-// app.use('/api', router);
+const appRouter = Router.use('/api', router);
 
 (async () => {
-  app.listen(PORT, () => console.log(`App is running on ${PORT} port`));
+  const server = http.createServer((req, res) => {
+    setCorsHeaders(res);
+    appRouter.handleRequest(req, res);
+  });
+
+  server.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}/`);
+  });
+
   await getPostgresDbClient();
 })();

@@ -7,4 +7,3 @@ export class Permission {
     this.permissionName = permissionName;
   }
 }
-  
