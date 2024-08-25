@@ -17,3 +17,15 @@ export const getPostgresDbClient = async () => {
     .catch((error) => console.error('Error connecting to Postgres', error.message));
   return client;
 };
+
+export const executeQuery = async (query, params = []) => {
+  const client = await getPostgresDbClient();
+  try {
+    const result = await client.query(query, params);
+    return result.rows;
+  } catch (error) {
+    throw new Error('Error executing query', error.message);
+  } finally {
+    client.release();
+  }
+};

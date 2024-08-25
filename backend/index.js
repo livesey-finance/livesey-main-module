@@ -16,9 +16,9 @@ const appRouter = Router.use('/api', router);
     appRouter.handleRequest(req, res);
   });
 
+  await getPostgresDbClient();
+
   server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/`);
   });
-
-  await getPostgresDbClient();
 })();
