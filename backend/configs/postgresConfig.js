@@ -12,10 +12,12 @@ const pool = new Pool({
 });
 
 export const getPostgresDbClient = async () => {
-  const client = await pool.connect()
-    .then(() => console.log('Successfully connected to Postgres'))
-    .catch((error) => console.error('Error connecting to Postgres', error.message));
-  return client;
+  try {
+    const client = await pool.connect();
+    return client;
+  } catch (error) {
+    throw new Error('Failed to connect to the database');
+  }
 };
 
 export const executeQuery = async (query, params = []) => {
@@ -24,7 +26,7 @@ export const executeQuery = async (query, params = []) => {
     const result = await client.query(query, params);
     return result.rows;
   } catch (error) {
-    throw new Error('Error executing query', error.message);
+    throw new Error(`Error executing query: ${error.message}`);
   } finally {
     client.release();
   }
